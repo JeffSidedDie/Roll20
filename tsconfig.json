@@ -1,0 +1,24 @@
+{
+	"compilerOptions": {
+		"allowJs": false,
+		"noEmitOnError": true,
+		"noFallthroughCasesInSwitch": true,
+		"noImplicitAny": true,
+		"noImplicitReturns": true,
+		"noImplicitThis": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"outDir": "build",
+		"sourceMap": true,
+		"strictNullChecks": true,
+		"target": "es5",
+		"watch": false
+	},
+	"exclude": [
+		"node_modules",
+		"legacy"
+	],
+	"include": [
+		"src/**/*"
+	]
+}

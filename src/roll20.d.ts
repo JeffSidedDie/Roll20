@@ -3,6 +3,7 @@
  */
 declare var state: any;
 
+type ReadyEventType = "ready";
 type ChatEventType = "chat:message";
 type ChatEventDataType = "general" | "rollresult" | "gmrollresult" | "emote" | "whisper" | "desc" | "api";
 type ObjectType = "graphic" | "text" | "path" | "character" | "ability" | "attribute" | "handout" | "rollabletable" | "tableitem" | "macro";
@@ -76,7 +77,12 @@ interface WhisperChatEventData extends ChatEventData {
 }
 
 interface ApiChatEventData extends ChatEventData {
-	readonly selected: Roll20Object[];
+	readonly selected?: ApiChatEventDataSelectObjectInfo[];
+}
+
+interface ApiChatEventDataSelectObjectInfo {
+	readonly _id: string;
+	readonly _type: ObjectType;
 }
 
 interface InlineRollSummary {
@@ -185,7 +191,7 @@ declare function getObj(type: ObjectType, id: string): Roll20Object;
  * 
  * @param message The message to post to the API console. The message parameter will be transformed into a String with JSON.stringify.
  */
-declare function log(message:any):void;
+declare function log(message: any): void;
 
 /**
  * Registers an event handler.
@@ -210,6 +216,7 @@ declare function log(message:any):void;
  * * chat events have a msg parameter, which contains the details of the message that was sent to the chat.
  */
 declare function on(event: ChatEventType, callback: (msg: ChatEventData) => void): void;
+declare function on(event: ReadyEventType, callback: () => void): void;
 
 /**
  * Sends a chat message.

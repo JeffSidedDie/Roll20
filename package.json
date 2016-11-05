@@ -9,8 +9,10 @@
   },
   "private": true,
   "dependencies": {
+    "@types/html-entities": "^1.2.15",
     "@types/node": "^6.0.46",
     "@types/underscore": "^1.7.33",
+    "html-entities": "^1.2.0",
     "xmldoc": "^0.5.1"
   },
   "devDependencies": {
@@ -19,6 +21,6 @@
     "webpack": "^1.13.3"
   },
   "scripts": {
-    "build":"tsc -listFiles && webpack"
+    "build": "tsc -listFiles && webpack"
   }
 }

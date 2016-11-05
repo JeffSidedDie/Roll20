@@ -181,6 +181,13 @@ declare function findObjs(attributes: { [attributeName: string]: any }, options?
 declare function getObj(type: ObjectType, id: string): Roll20Object;
 
 /**
+ * Logs a message to the API console.
+ * 
+ * @param message The message to post to the API console. The message parameter will be transformed into a String with JSON.stringify.
+ */
+declare function log(message:any):void;
+
+/**
  * Registers an event handler.
  * 
  * @param event There are five types of event:

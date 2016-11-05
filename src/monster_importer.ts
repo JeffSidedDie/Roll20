@@ -1,7 +1,7 @@
 ﻿import { XmlDocument } from "xmldoc";
 
 (() => {
-	"use strict";
+	log("Monster Importer loaded.");
 
 	on("chat:message", (msg) => {
 		// Exit if not an api command
@@ -12,7 +12,7 @@
 		const command = content.split(" ", 1);
 
 		if (command[0] === "!build-monster") {
-			if (!(<ApiChatEventData> msg).selected.length) { return; }
+			if (!(<ApiChatEventData>msg).selected.length) { return; }
 			const n = content.split(" ", 2);
 			const token = getObj("graphic", n[1]);
 			if (token.get("subtype") !== "token") { return; }
@@ -20,7 +20,7 @@
 
 			// REPLACE SPECIAL CHARACTERS
 			const StatBlock = token.get("gmnotes");
-			const monster = new XmlDocument(decodeURI(StatBlock).replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/<br>/g, ""));
+			const monster = new XmlDocument(decodeURIComponent(StatBlock).replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/<br>/g, ""));
 
 			// END SPECIAL CHARACTER REPLACEMENT or REMOVAL
 

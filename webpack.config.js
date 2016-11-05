@@ -1,9 +1,11 @@
 module.exports = [
     {
-        entry: "./build/monster_importer.js",
+        entry: {
+            monster_importer: "./build/monster_importer.js",
+        },
         output: {
-            path: "lib",
-            filename: "monster_importer.js"
+            path: __dirname + "/lib",
+            filename: "[name].js"
         },
         target: "node"
     }

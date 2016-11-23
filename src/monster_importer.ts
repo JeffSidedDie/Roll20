@@ -46,16 +46,12 @@ class MonsterImporter {
 
 		// check if monster already exists
 		const MonsterName = xml.childNamed("Name").val;
-
-		// CHECK FOR DUPLICATE CHARACTERS
 		const charactersWithSameName = findObjs({
 			_type: "character",
 			name: MonsterName,
 		});
-
-		// DO NOT CREATE IF SHEET EXISTS
 		if (charactersWithSameName.length > 0) {
-			sendChat("ERROR", "This monster already exists.");
+			this.handleError("Monster with the same name already exists.", charactersWithSameName[0]);
 			return;
 		}
 

@@ -13,17 +13,11 @@ class MonsterImporter {
 		return this._errorObject;
 	}
 
-	public handleChatMessage(msg: ApiChatEventData): boolean {
-		if (!msg.selected || msg.selected.length !== 1) { return this.setError("Exactly one object must be selected.", msg.selected); }
-
-		const selected = msg.selected[0];
-		if (selected._type !== "graphic") { return this.setError("Selected object must be a graphic.", selected); }
-
-		const token = getObj(selected._type, selected._id);
-		if (token.get("subtype") !== "token") { return this.setError("Selected graphic must be a token.", token); }
+	public parseGmNotesFromToken(token: Roll20Object): boolean {
+		if (token.get("type") !== "graphic" && token.get("subtype") !== "token") { return this.setError("Object to parse from must be a token.", token); }
 
 		let gmnotes = <string>token.get("gmnotes");
-		if (!gmnotes) { return this.setError("Selected token must have GM notes.", gmnotes); }
+		if (!gmnotes) { return this.setError("Token must have GM notes.", gmnotes); }
 
 		// clean gm notes
 		const entities = new AllHtmlEntities();
@@ -186,14 +180,28 @@ class MonsterImporter {
 
 on("ready", () => {
 	on("chat:message", (msg) => {
+		// silently ignore if message isn't for this
 		if (msg.type !== "api") { return; }
 		if (msg.content !== "!import-monster") { return; }
 
+		const apiMsg = <ApiChatEventData>msg;
+		if (!apiMsg.selected || apiMsg.selected.length !== 1) { return handleError("Exactly one object must be selected.", apiMsg.selected); }
+
+		const selected = apiMsg.selected[0];
+		if (selected._type !== "graphic") { return handleError("Selected object must be a graphic.", selected); }
+
+		const token = getObj(selected._type, selected._id);
+		if (token.get("subtype") !== "token") { return handleError("Selected graphic must be a token.", token); }
+
 		const importer = new MonsterImporter();
-		const success = importer.handleChatMessage(msg);
+		const success = importer.parseGmNotesFromToken(token);
 		if (!success) {
-			sendChat("Monster Importer", "/w gm " + importer.errorMessage);
-			log(new Date().toLocaleString() + ": Monster Importer - " + importer.errorMessage + " Value: " + JSON.stringify(importer.errorObject));
+			return handleError(importer.errorMessage, importer.errorObject);
+		}
+
+		function handleError(message: string, object: any) {
+			sendChat("Monster Importer", "/w gm " + message);
+			log(new Date().toLocaleString() + ": Monster Importer - " + message + " Value: " + JSON.stringify(object));
 		}
 	});
 	log(new Date().toLocaleString() + ": Monster Importer - Loading complete.");

@@ -2,29 +2,28 @@
 import { XmlDocument } from "xmldoc";
 
 class MonsterImporter {
-	public handleChatMessage(msg: ApiChatEventData) {
-		if (!msg.selected || msg.selected.length !== 1) {
-			this.handleError("Exactly one object must be selected.", msg.selected);
-			return;
-		}
+	private _errorMessage: string;
+	private _errorObject: any;
+
+	public get errorMessage() {
+		return this._errorMessage;
+	}
+
+	public get errorObject() {
+		return this._errorObject;
+	}
+
+	public handleChatMessage(msg: ApiChatEventData): boolean {
+		if (!msg.selected || msg.selected.length !== 1) { return this.setError("Exactly one object must be selected.", msg.selected); }
 
 		const selected = msg.selected[0];
-		if (selected._type !== "graphic") {
-			this.handleError("Selected object must be a graphic.", selected);
-			return;
-		}
+		if (selected._type !== "graphic") { return this.setError("Selected object must be a graphic.", selected); }
 
 		const token = getObj(selected._type, selected._id);
-		if (token.get("subtype") !== "token") {
-			this.handleError("Selected graphic must be a token.", token);
-			return;
-		}
+		if (token.get("subtype") !== "token") { return this.setError("Selected graphic must be a token.", token); }
 
 		let gmnotes = <string>token.get("gmnotes");
-		if (!gmnotes) {
-			this.handleError("Selected token must have GM notes.", gmnotes);
-			return;
-		}
+		if (!gmnotes) { return this.setError("Selected token must have GM notes.", gmnotes); }
 
 		// clean gm notes
 		const entities = new AllHtmlEntities();
@@ -36,43 +35,36 @@ class MonsterImporter {
 		try {
 			xml = new XmlDocument(gmnotes);
 		} catch (e) {
-			this.handleError("Could not parse XML from GM notes.", gmnotes);
-			return;
+			return this.setError("Could not parse XML from GM notes.", gmnotes);
 		}
-		if (xml.name !== "Monster") {
-			this.handleError("XML is not proper 4E monster file.", xml.name);
-			return;
-		}
+		if (xml.name !== "Monster") { return this.setError("XML is not proper 4E monster file.", xml.name); }
 
 		// check if monster already exists
-		const MonsterName = xml.childNamed("Name").val;
+		const monsterName = xml.childNamed("Name").val;
 		const charactersWithSameName = findObjs({
 			_type: "character",
-			name: MonsterName,
+			name: monsterName,
 		});
-		if (charactersWithSameName.length > 0) {
-			this.handleError("Monster with the same name already exists.", charactersWithSameName[0]);
-			return;
-		}
+		if (charactersWithSameName.length > 0) { return this.setError("Monster with the same name already exists.", charactersWithSameName[0]); }
 
 		// CREATE CHARACTER SHEET & LINK TOKEN TO SHEET
-		const Character = createObj("character", {
+		const character = createObj("character", {
 			archived: false,
 			avatar: token.get("imgsrc"),
-			name: MonsterName,
+			name: monsterName,
 		});
 
 		// Stats
-		this.AddAttribute("level", xml.valueWithPath("Level"), Character.id);
-		this.AddAttribute("class", xml.valueWithPath("Role.ReferencedObject.Name"), Character.id);
-		this.AddAttribute("xp", xml.valueWithPath("Experience@FinalValue"), Character.id);
-		this.AddAttribute("race", xml.valueWithPath("Type.ReferencedObject.Name"), Character.id);
-		this.AddAttribute("size", xml.valueWithPath("Size.ReferencedObject.Name"), Character.id);
-		this.AddAttribute("initiative", xml.valueWithPath("Initiative@FinalValue"), Character.id);
+		this.AddAttribute("level", xml.valueWithPath("Level"), character.id);
+		this.AddAttribute("class", xml.valueWithPath("Role.ReferencedObject.Name"), character.id);
+		this.AddAttribute("xp", xml.valueWithPath("Experience@FinalValue"), character.id);
+		this.AddAttribute("race", xml.valueWithPath("Type.ReferencedObject.Name"), character.id);
+		this.AddAttribute("size", xml.valueWithPath("Size.ReferencedObject.Name"), character.id);
+		this.AddAttribute("initiative", xml.valueWithPath("Initiative@FinalValue"), character.id);
 
 		// HP, save this for later
 		const hp = xml.valueWithPath("HitPoints@FinalValue");
-		this.AddAttribute("hp", hp, Character.id, true);
+		this.AddAttribute("hp", hp, character.id, true);
 
 		// Defenses
 		const defenseAttributes: any = {
@@ -84,21 +76,21 @@ class MonsterImporter {
 		xml.descendantWithPath("Defenses.Values").eachChild((child) => {
 			const value = child.attr.FinalValue;
 			const name = child.valueWithPath("Name");
-			this.AddAttribute(defenseAttributes[name], value, Character.id);
+			this.AddAttribute(defenseAttributes[name], value, character.id);
 		});
 
 		// Ability Scores
 		xml.descendantWithPath("AbilityScores.Values").eachChild((child) => {
 			const value = child.attr.FinalValue;
 			const name = child.valueWithPath("Name");
-			this.AddAttribute(name, value, Character.id);
+			this.AddAttribute(name, value, character.id);
 		});
 
 		// Skills
 		xml.descendantWithPath("Skills.Values").eachChild((child) => {
 			const value = child.attr.FinalValue;
 			const name = child.valueWithPath("Name");
-			this.AddAttribute(name, value, Character.id);
+			this.AddAttribute(name, value, character.id);
 		});
 
 		// Powers
@@ -148,17 +140,19 @@ class MonsterImporter {
 
 			power += "}}";
 
-			this.AddPower(name, power, Character.id);
+			this.AddPower(name, power, character.id);
 		});
 
 		// SET TOKEN VALUES
-		token.set("represents", Character.id);
-		token.set("name", MonsterName);
+		token.set("represents", character.id);
+		token.set("name", monsterName);
 		token.set("showname", true);
 		token.set("showplayers_name", true);
 		token.set("bar1_value", hp);
 		token.set("bar1_max", hp);
-		// token.set("gmnotes", "");
+		token.set("gmnotes", "");
+
+		return true;
 	}
 
 	private AddAttribute(attr: string, value: any, charid: string, setMax?: boolean) {
@@ -183,9 +177,10 @@ class MonsterImporter {
 		});
 	}
 
-	private handleError(message: string, logObject: any) {
-		sendChat("Monster Importer", "/w gm " + message);
-		log(new Date().toLocaleString() + ": Monster Importer - " + message + " Value: " + JSON.stringify(logObject));
+	private setError(message: string, object: any): boolean {
+		this._errorMessage = message;
+		this._errorObject = object;
+		return false;
 	}
 }
 
@@ -195,7 +190,11 @@ on("ready", () => {
 		if (msg.content !== "!import-monster") { return; }
 
 		const importer = new MonsterImporter();
-		importer.handleChatMessage(msg);
+		const success = importer.handleChatMessage(msg);
+		if (!success) {
+			sendChat("Monster Importer", "/w gm " + importer.errorMessage);
+			log(new Date().toLocaleString() + ": Monster Importer - " + importer.errorMessage + " Value: " + JSON.stringify(importer.errorObject));
+		}
 	});
 	log(new Date().toLocaleString() + ": Monster Importer - Loading complete.");
 });

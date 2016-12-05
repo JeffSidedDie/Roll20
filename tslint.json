@@ -5,6 +5,17 @@
 			true,
 			"tabs"
 		],
-		"max-line-length": [ false ]
+		"max-line-length": [
+			false
+		],
+		"whitespace": [
+			true,
+			"check-branch",
+			"check-decl",
+			"check-module",
+			"check-operator",
+			"check-separator",
+			"check-type"
+		]
 	}
 }

@@ -50,11 +50,11 @@ class MonsterImporter {
 
 		// Stats
 		this.AddAttribute("level", xml.valueWithPath("Level"), character.id);
-		this.AddAttribute("class", xml.valueWithPath("Role.ReferencedObject.Name"), character.id);
+		this.AddAttribute("class", xml.valueWithPath("GroupRole.ReferencedObject.Name") + " " + xml.valueWithPath("Role.ReferencedObject.Name"), character.id);
 		this.AddAttribute("xp", xml.valueWithPath("Experience@FinalValue"), character.id);
-		this.AddAttribute("race", xml.valueWithPath("Type.ReferencedObject.Name"), character.id);
+		this.AddAttribute("race", xml.valueWithPath("Origin.ReferencedObject.Name") + " " + xml.valueWithPath("Type.ReferencedObject.Name"), character.id);
 		this.AddAttribute("size", xml.valueWithPath("Size.ReferencedObject.Name"), character.id);
-		this.AddAttribute("initiative", xml.valueWithPath("Initiative@FinalValue"), character.id);
+		this.AddAttribute("alignment", xml.valueWithPath("Alignment.ReferencedObject.Name"), character.id);
 
 		// HP, save this for later
 		const hp = xml.valueWithPath("HitPoints@FinalValue");
@@ -150,7 +150,7 @@ class MonsterImporter {
 		token.set("aura1_square", true);
 		token.set("showplayers_aura1", true);
 
-		//clean up gm notes
+		// clean up gm notes
 		token.set("gmnotes", "");
 		return true;
 	}

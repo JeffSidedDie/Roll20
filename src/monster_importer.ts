@@ -142,10 +142,16 @@ class MonsterImporter {
 		token.set("name", monsterName);
 		token.set("showname", true);
 		token.set("showplayers_name", true);
-		token.set("bar1_value", hp);
-		token.set("bar1_max", hp);
-		token.set("gmnotes", "");
+		token.set("bar3_value", hp);
+		token.set("bar3_max", hp);
+		// red aura
+		token.set("aura1_radius", "0");
+		token.set("aura1_color", "#660000");
+		token.set("aura1_square", true);
+		token.set("showplayers_aura1", true);
 
+		//clean up gm notes
+		token.set("gmnotes", "");
 		return true;
 	}
 

@@ -55,36 +55,24 @@ class MonsterImporter {
 		this.AddAttribute("race", xml.valueWithPath("Origin.ReferencedObject.Name") + " " + xml.valueWithPath("Type.ReferencedObject.Name"), character.id);
 		this.AddAttribute("size", xml.valueWithPath("Size.ReferencedObject.Name"), character.id);
 		this.AddAttribute("alignment", xml.valueWithPath("Alignment.ReferencedObject.Name"), character.id);
+		this.AddAttribute("initiative", xml.valueWithPath("Initiative@FinalValue"), character.id);
 
 		// HP, save this for later
 		const hp = xml.valueWithPath("HitPoints@FinalValue");
 		this.AddAttribute("hp", hp, character.id, true);
 
-		// Defenses
-		const defenseAttributes: any = {
+		const attributeTypes = ["Defenses", "AbilityScores", "Skills"];
+		const attributeMap: { [property: string]: string } = {
 			AC: "ac",
 			Fortitude: "fort",
 			Reflex: "ref",
 			Will: "will",
 		};
-		xml.descendantWithPath("Defenses.Values").eachChild((child) => {
-			const value = child.attr.FinalValue;
-			const name = child.valueWithPath("Name");
-			this.AddAttribute(defenseAttributes[name], value, character.id);
-		});
-
-		// Ability Scores
-		xml.descendantWithPath("AbilityScores.Values").eachChild((child) => {
-			const value = child.attr.FinalValue;
-			const name = child.valueWithPath("Name");
-			this.AddAttribute(name, value, character.id);
-		});
-
-		// Skills
-		xml.descendantWithPath("Skills.Values").eachChild((child) => {
-			const value = child.attr.FinalValue;
-			const name = child.valueWithPath("Name");
-			this.AddAttribute(name, value, character.id);
+		attributeTypes.forEach((attributeType) => {
+			xml.descendantWithPath(attributeType + ".Values").eachChild((child) => {
+				const name = child.valueWithPath("Name");
+				this.AddAttribute(attributeMap[name] || name.toLowerCase(), child.attr.FinalValue, character.id);
+			});
 		});
 
 		// Powers

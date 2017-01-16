@@ -16,7 +16,7 @@ class MonsterImporter {
 	public parseGmNotesFromToken(token: Roll20Object): boolean {
 		if (token.get("type") !== "graphic" && token.get("subtype") !== "token") { return this.setError("Object to parse from must be a token.", token); }
 
-		let gmnotes = <string>token.get("gmnotes");
+		let gmnotes = token.get("gmnotes") as string;
 		if (!gmnotes) { return this.setError("Token must have GM notes.", gmnotes); }
 
 		// clean gm notes
@@ -144,7 +144,7 @@ class MonsterImporter {
 	}
 
 	private AddAttribute(attr: string, value: any, charid: string, setMax?: boolean) {
-		let attribute: any = {
+		const attribute: any = {
 			characterid: charid,
 			current: value,
 			name: attr,
@@ -178,7 +178,7 @@ on("ready", () => {
 		if (msg.type !== "api") { return; }
 		if (msg.content !== "!import-monster") { return; }
 
-		const apiMsg = <ApiChatEventData>msg;
+		const apiMsg = msg as ApiChatEventData;
 		if (!apiMsg.selected || apiMsg.selected.length !== 1) { return handleError("Exactly one object must be selected.", apiMsg.selected); }
 
 		const selected = apiMsg.selected[0];

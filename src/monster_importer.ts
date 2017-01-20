@@ -194,7 +194,7 @@ on("ready", () => {
 		}
 
 		function handleError(message: string, object: any) {
-			sendChat("Monster Importer", "/w gm " + message);
+			sendChat("Monster Importer", "/w \"" + msg.who + "\" " + message);
 			log(new Date().toLocaleString() + ": Monster Importer - " + message + " Value: " + JSON.stringify(object));
 		}
 	});

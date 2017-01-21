@@ -9,7 +9,7 @@ type ChatEventDataType = "general" | "rollresult" | "gmrollresult" | "emote" | "
 type ObjectType = "graphic" | "text" | "path" | "character" | "ability" | "attribute" | "handout" | "rollabletable" | "tableitem" | "macro";
 type RollType = "V" | "G" | "M" | "R" | "C";
 type RollResultType = "sum" | "success";
-type Roll20ObjectAsynchronousGetAttributeType = "notes" | "gmnotes" | "bio";
+type Roll20ObjectAsynchronousGetPropertyType = "notes" | "gmnotes" | "bio";
 
 /**
  * Roll20 objects are a special kind of JavaScript object. They represent something in your campaign, such as a token on the tabletop or a character in the journal, and there is some special consideration for using them. 
@@ -34,7 +34,7 @@ interface Roll20Object {
 	 * @param property The name of the property to get. If you are getting the value of a read-only property (one which starts with an underscore, like _id or _type), the leading underscore is not required.
 	 * @param callback A callback function which will receive the value of the property as a parameter.
 	 */
-	get(property: Roll20ObjectAsynchronousGetAttributeType, callback: (value: string) => void): void;
+	get(property: Roll20ObjectAsynchronousGetPropertyType, callback: (value: string) => void): void;
 
 	/**
 	 * Deletes the Roll20 object.
@@ -42,7 +42,7 @@ interface Roll20Object {
 	remove(): void;
 
 	/**
-	 * Sets one specified property values.
+	 * Sets one specified property value.
 	 * 
 	 * @param property The name of the property to set.
 	 * @param value The value to set for the specified property.
@@ -50,11 +50,26 @@ interface Roll20Object {
 	set(property: string, value: any): void;
 
 	/**
+	 * Sets one specified property value and runs the character sheet workers related to that attribute (if any).
+	 * 
+	 * @param property The name of the property to set.
+	 * @param value The value to set for the specified property.
+	 */
+	setWithWorker(property: string, value: any): void;
+
+	/**
 	 * Sets one or more specified property values.
 	 * 
 	 * @param attributes The properties of the attributes object will be mapped to the properties of the Roll20 object.
 	 */
 	set(attributes: { [property: string]: any }): void;
+
+	/**
+	 * Sets one or more specified property values and runs the character sheet workers related to that attribute (if any).
+	 * 
+	 * @param attributes The properties of the attributes object will be mapped to the properties of the Roll20 object.
+	 */
+	setWithWorker(attributes: { [property: string]: any }): void;
 }
 
 interface ChatEventData {

@@ -86,50 +86,56 @@ class MonsterImporter {
 
 			const name = child.valueWithPath("Name");
 			appendTag("name", name);
-			const usage = child.valueWithPath("Usage");
-			appendTag("format", (usage || "").toLowerCase());
 
-			const action = child.valueWithPath("Action");
-			appendTag("leftsub", action ? action + " Action" : "");
-			const usageDetails = child.valueWithPath("UsageDetails");
-			appendTag("rightsub", usage + (usageDetails ? " " + usageDetails : ""));
+			if (child.name === "MonsterPower") {
+				const usage = child.valueWithPath("Usage");
+				appendTag("format", (usage || "").toLowerCase());
 
-			appendTag("Requirements", child.valueWithPath("Requirements"));
-			appendTag("Trigger", child.valueWithPath("Trigger"));
+				const action = child.valueWithPath("Action");
+				appendTag("leftsub", action ? action + " Action" : "");
+				const usageDetails = child.valueWithPath("UsageDetails");
+				appendTag("rightsub", usage + (usageDetails ? " " + usageDetails : ""));
 
-			const attack = child.descendantWithPath("Attacks.MonsterAttack");
-			if (attack) {
-				const range = attack.valueWithPath("Range");
-				appendTag("Range", range);
-				appendTag("Target(s)", attack.valueWithPath("Targets"));
+				appendTag("Requirements", child.valueWithPath("Requirements"));
+				appendTag("Trigger", child.valueWithPath("Trigger"));
 
-				const rangeLower = range.toLowerCase();
-				const multipleAttacks = rangeLower.indexOf("burst") !== -1 || rangeLower.indexOf("blast") !== -1;
-				if (multipleAttacks) {
-					let targetList = "";
-					_.times(6, (n) => targetList += ((n > 0 ? " | " : "") + "@{target|Target" + (n + 1) + "|token_id}"));
-					appendTag("target_list", targetList);
+				const attack = child.descendantWithPath("Attacks.MonsterAttack");
+				if (attack) {
+					const range = attack.valueWithPath("Range");
+					appendTag("Range", range);
+					appendTag("Target(s)", attack.valueWithPath("Targets"));
+
+					const rangeLower = range.toLowerCase();
+					const multipleAttacks = rangeLower.indexOf("burst") !== -1 || rangeLower.indexOf("blast") !== -1;
+					if (multipleAttacks) {
+						let targetList = "";
+						_.times(6, (n) => targetList += ((n > 0 ? " | " : "") + "@{target|Target" + (n + 1) + "|token_id}"));
+						appendTag("target_list", targetList);
+					}
+
+					const attackBonusNode = attack.descendantWithPath("AttackBonuses.MonsterPowerAttackNumber");
+					const attackBonus = attackBonusNode.attr.FinalValue;
+					const defense = attackBonusNode.valueWithPath("Defense.ReferencedObject.DefenseName");
+					if (multipleAttacks) {
+						appendTag("Attack#?{Number of targets|1}", "[[ 1d20+" + attackBonus + " ]] vs %%%" + attributeMap[defense] + "%% (%%character_name%%'s " + defense + ")");
+					} else {
+						appendTag("Attack", "[[ 1d20+" + attackBonus + " ]] vs [[ @{target|" + attributeMap[defense] + "} ]] (@{target|character_name}'s " + defense + ")");
+					}
+
+					const hitNode = attack.childNamed("Hit");
+					const damage = hitNode.valueWithPath("Damage.Expression");
+					const onHit = hitNode.valueWithPath("Description");
+
+					appendTag("Hit", "[[ " + damage + " ]] " + onHit);
+
+					appendTag("Miss", attack.valueWithPath("Miss.Description"));
+					appendTag("Effect", attack.valueWithPath("Effect.Description"));
+
+					// const MultiAttack = MPTarget ? ((MPTarget.toLowerCase().indexOf("close burst") != -1 && MPTarget.toLowerCase().indexOf("area burst") != -1) ? "?{Number of Attacks|1}" : "") : "";
 				}
-
-				const attackBonusNode = attack.descendantWithPath("AttackBonuses.MonsterPowerAttackNumber");
-				const attackBonus = attackBonusNode.attr.FinalValue;
-				const defense = attackBonusNode.valueWithPath("Defense.ReferencedObject.DefenseName");
-				if (multipleAttacks) {
-					appendTag("Attack#?{Number of targets|1}", "[[ 1d20+" + attackBonus + " ]] vs %%%" + attributeMap[defense] + "%% (%%character_name%%'s " + defense + ")");
-				} else {
-					appendTag("Attack", "[[ 1d20+" + attackBonus + " ]] vs [[ @{target|" + attributeMap[defense] + "} ]] (@{target|character_name}'s " + defense + ")");
-				}
-
-				const hitNode = attack.childNamed("Hit");
-				const damage = hitNode.valueWithPath("Damage.Expression");
-				const onHit = hitNode.valueWithPath("Description");
-
-				appendTag("Hit", "[[ " + damage + " ]] " + onHit);
-
-				appendTag("Miss", attack.valueWithPath("Miss.Description"));
-				appendTag("Effect", attack.valueWithPath("Effect.Description"));
-
-				// const MultiAttack = MPTarget ? ((MPTarget.toLowerCase().indexOf("close burst") != -1 && MPTarget.toLowerCase().indexOf("area burst") != -1) ? "?{Number of Attacks|1}" : "") : "";
+			} else {
+				const details = child.valueWithPath("Details");
+				appendTag("Effect", details);
 			}
 
 			power += "}}";

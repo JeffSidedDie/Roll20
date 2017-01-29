@@ -3,8 +3,8 @@
 
 // VERSION INFO
 var PowerCards_Author = "SkyCaptainXIII";
-var PowerCards_Version = "3.2.22";
-var PowerCards_LastUpdated = 1479938305;
+var PowerCards_Version = "3.2.23";
+var PowerCards_LastUpdated = 1484577932;
 
 // FUNCTION DECLARATIONS
 var PowerCard = PowerCard || {};
@@ -38,7 +38,7 @@ on("chat:message", function (msg) {
         PowerCard.Process(msg, player_obj);
     }
     if (msg.content.split(" ", 1)[0] === "!power_version") {
-        sendChat("HoneyBadger", "/w " + msg.who + " You are using version " + PowerCards_Version + " of PowerCards, authored by " + PowerCards_Author + ", which was last updated on: " + PowerCards_LastUpdated + ".");
+        sendChat("", "/w " + msg.who + " You are using version " + PowerCards_Version + " of PowerCards, authored by " + PowerCards_Author + ", which was last updated on: " + PowerCards_LastUpdated + ".");
     }
 });
 
@@ -75,7 +75,7 @@ PowerCard.Process = function (msg, player_obj) {
     }
 
     // DEFINE VARIABLES
-    var n = (player_obj) ? msg.content.replace("%%who%%", player_obj.get("displayname")).split("--") : msg.content.split("--");
+    var n = (player_obj) ? msg.content.replace("%%who%%", player_obj.get("displayname")).split(/\s+--/) : msg.content.split(/\s+--/);
     var PowerCard = {};
     var Tag = "";
     var Content = "";

@@ -1,5 +1,4 @@
-﻿import { AllHtmlEntities } from "html-entities";
-import { XmlDocument } from "xmldoc";
+﻿import { XmlDocument } from "xmldoc";
 
 class MonsterImporter {
 	private _errorMessage: string;
@@ -20,9 +19,8 @@ class MonsterImporter {
 		if (!gmnotes) { return this.setError("Token must have GM notes.", gmnotes); }
 
 		// clean gm notes
-		const entities = new AllHtmlEntities();
-		gmnotes = decodeURIComponent(gmnotes);
-		gmnotes = entities.decode(gmnotes);
+		gmnotes = unescape(gmnotes);
+		gmnotes = _.unescape(gmnotes);
 		gmnotes = gmnotes.replace(/<br>/g, ""); // Roll20 seems to replace newlines with break tags
 
 		let xml: XmlDocument;

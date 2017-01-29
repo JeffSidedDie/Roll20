@@ -1,3 +1,7 @@
+/// <reference path="../node_modules/@types/underscore/index.d.ts" />
+
+declare var _: _.UnderscoreStatic;
+
 /**
  * Properties of the state object will persist between game sessions.
  */
@@ -242,3 +246,10 @@ declare function on(event: ReadyEventType, callback: () => void): void;
  * @param options If options.noarchive is true, the message will not be added to the chat archive. If options.use3d is true, dice rolls in the message will use the 3D dice feature. Options are not applicable if callback is specified.
  */
 declare function sendChat(speakingAs: string, message: string, callback?: (operations: ChatEventData[]) => void, options?: ChatMessageHandlingOptions): void;
+
+/**
+ * Decodes an encoded string.
+ * 
+ * @param str The string to be decoded.
+ */
+declare function unescape(str: string): string;

@@ -105,7 +105,7 @@ class MonsterImporter {
 					appendTag("Range", range);
 					appendTag("Target(s)", attack.valueWithPath("Targets"));
 
-					const rangeLower = range.toLowerCase();
+					const rangeLower = (range || "").toLowerCase();
 					const multipleAttacks = rangeLower.indexOf("burst") !== -1 || rangeLower.indexOf("blast") !== -1;
 					if (multipleAttacks) {
 						let targetList = "";
@@ -114,21 +114,30 @@ class MonsterImporter {
 					}
 
 					const attackBonusNode = attack.descendantWithPath("AttackBonuses.MonsterPowerAttackNumber");
-					const attackBonus = attackBonusNode.attr.FinalValue;
-					const defense = attackBonusNode.valueWithPath("Defense.ReferencedObject.DefenseName");
-					if (multipleAttacks) {
-						appendTag("Attack#?{Number of targets|1}", "[[ 1d20+" + attackBonus + " ]] vs %%%" + attributeMap[defense] + "%% (%%character_name%%'s " + defense + ")");
-					} else {
-						appendTag("Attack", "[[ 1d20+" + attackBonus + " ]] vs [[ @{target|" + attributeMap[defense] + "} ]] (@{target|character_name}'s " + defense + ")");
+					if (attackBonusNode) {
+						const attackBonus = attackBonusNode.attr.FinalValue;
+						const defense = attackBonusNode.valueWithPath("Defense.ReferencedObject.DefenseName");
+						if (multipleAttacks) {
+							appendTag("Attack#?{Number of targets|1}", "[[ 1d20+" + attackBonus + " ]] vs %%%" + attributeMap[defense] + "%% (%%character_name%%'s " + defense + ")");
+						} else {
+							appendTag("Attack", "[[ 1d20+" + attackBonus + " ]] vs [[ @{target|" + attributeMap[defense] + "} ]] (@{target|character_name}'s " + defense + ")");
+						}
+
+						const hitNode = attack.childNamed("Hit");
+						const damage = hitNode.valueWithPath("Damage.Expression");
+						const onHit = hitNode.valueWithPath("Description");
+
+						let hitLine = "";
+						if (damage) {
+							hitLine += "[[ " + damage + " ]] ";
+						}
+						if (onHit) {
+							hitLine += onHit;
+						}
+						appendTag("Hit", hitLine);
+						appendTag("Miss", attack.valueWithPath("Miss.Description"));
 					}
 
-					const hitNode = attack.childNamed("Hit");
-					const damage = hitNode.valueWithPath("Damage.Expression");
-					const onHit = hitNode.valueWithPath("Description");
-
-					appendTag("Hit", "[[ " + damage + " ]] " + onHit);
-
-					appendTag("Miss", attack.valueWithPath("Miss.Description"));
 					appendTag("Effect", attack.valueWithPath("Effect.Description"));
 
 					// const MultiAttack = MPTarget ? ((MPTarget.toLowerCase().indexOf("close burst") != -1 && MPTarget.toLowerCase().indexOf("area burst") != -1) ? "?{Number of Attacks|1}" : "") : "";
@@ -162,15 +171,19 @@ class MonsterImporter {
 	}
 
 	private AddAttribute(attr: string, value: any, charid: string, setMax?: boolean) {
-		const attribute: any = {
-			characterid: charid,
-			current: value,
-			name: attr,
-		};
-		if (setMax) {
-			attribute.max = value;
+		if (value) {
+			const attribute: any = {
+				characterid: charid,
+				current: value,
+				name: attr,
+			};
+			if (setMax) {
+				attribute.max = value;
+			}
+			return createObj("attribute", attribute);
+		} else {
+			return false;
 		}
-		return createObj("attribute", attribute);
 	}
 
 	private AddPower(name: string, action: string, charid: string) {

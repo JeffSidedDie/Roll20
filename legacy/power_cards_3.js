@@ -38,7 +38,7 @@ on("chat:message", function (msg) {
         PowerCard.Process(msg, player_obj);
     }
     if (msg.content.split(" ", 1)[0] === "!power_version") {
-        sendChat("", "/w " + msg.who + " You are using version " + PowerCards_Version + " of PowerCards, authored by " + PowerCards_Author + ", which was last updated on: " + PowerCards_LastUpdated + ".");
+        safeSendChat("", "/w " + msg.who + " You are using version " + PowerCards_Version + " of PowerCards, authored by " + PowerCards_Author + ", which was last updated on: " + PowerCards_LastUpdated + ".");
     }
 });
 
@@ -291,7 +291,7 @@ PowerCard.Process = function (msg, player_obj) {
     }
 
     // PROCESS INLINE ROLLS...
-    sendChat("", JSON.stringify(PowerCard), function (x) {
+    safeSendChat("", JSON.stringify(PowerCard), function (x) {
         var PowerCard = JSON.parse(x[0].content);
 
         // GET CUSTOM STYLES AND ADD THEM TO POWERCARD...
@@ -637,32 +637,41 @@ PowerCard.Process = function (msg, player_obj) {
         if (PowerCard.whisper !== undefined) {
             if (PowerCard.emote !== undefined) {
                 if (PowerCard.charid !== undefined || PowerCard.tokenid !== undefined) {
-                    sendChat(TimeStamp, Spacer);
-                    sendChat(TimeStamp, "/direct " + PowerCard.emote)
+                    safeSendChat(TimeStamp, Spacer);
+                    safeSendChat(TimeStamp, "/direct " + PowerCard.emote)
                 } else {
-                    sendChat(TimeStamp, '/emas " " ' + PowerCard.emote);
+                    safeSendChat(TimeStamp, '/emas " " ' + PowerCard.emote);
                 }
             }
             _.each(PowerCard.whisper.split(","), function (y) {
                 var WhisperTarget = ('self' === y.trim() ? msg.who : y.trim());
-                sendChat(msg.who, "/w " + WhisperTarget + " " + Display);
+                safeSendChat(msg.who, "/w " + WhisperTarget + " " + Display);
             });
         } else {
             if (PowerCard.emote !== undefined) {
                 if (PowerCard.charid !== undefined || PowerCard.tokenid !== undefined) {
-                    sendChat(TimeStamp, Spacer);
-                    sendChat(TimeStamp, "/direct " + PowerCard.emote + Display);
+                    safeSendChat(TimeStamp, Spacer);
+                    safeSendChat(TimeStamp, "/direct " + PowerCard.emote + Display);
                 } else {
-                    sendChat(TimeStamp, '/emas " " ' + PowerCard.emote);
-                    sendChat(TimeStamp, "/direct " + Display);
+                    safeSendChat(TimeStamp, '/emas " " ' + PowerCard.emote);
+                    safeSendChat(TimeStamp, "/direct " + Display);
                 }
             } else {
-                sendChat(TimeStamp, Spacer);
-                sendChat(TimeStamp, "/direct " + Display);
+                safeSendChat(TimeStamp, Spacer);
+                safeSendChat(TimeStamp, "/direct " + Display);
             }
         }
     });
 };
+
+function safeSendChat(speakingAs, message, callback) {
+    try {
+        sendChat(speakingAs, message, callback);
+    }
+    catch (e) {
+        sendChat("PowerCards", e);
+    }
+}
 
 /* FUNCTIONS /////////////////////////////////////////////////////////////////// */
 function buildInline(inlineroll, TrackerID, who) {

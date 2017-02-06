@@ -669,7 +669,8 @@ function safeSendChat(speakingAs, message, callback) {
         sendChat(speakingAs, message, callback);
     }
     catch (e) {
-        sendChat("PowerCards", e);
+        log(e);
+        sendChat("PowerCards", JSON.stringify(e));
     }
 }
 

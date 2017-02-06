@@ -139,8 +139,6 @@ class MonsterImporter {
 					}
 
 					appendTag("Effect", attack.valueWithPath("Effect.Description"));
-
-					// const MultiAttack = MPTarget ? ((MPTarget.toLowerCase().indexOf("close burst") != -1 && MPTarget.toLowerCase().indexOf("area burst") != -1) ? "?{Number of Attacks|1}" : "") : "";
 				}
 			} else {
 				const details = child.valueWithPath("Details");

@@ -10,10 +10,10 @@ declare var state: any;
 type ReadyEventType = "ready";
 type ChatEventType = "chat:message";
 type ChatEventDataType = "general" | "rollresult" | "gmrollresult" | "emote" | "whisper" | "desc" | "api";
-type ObjectType = "graphic" | "text" | "path" | "character" | "ability" | "attribute" | "handout" | "rollabletable" | "tableitem" | "macro";
+type ObjectType = "graphic" | "text" | "path" | "character" | "ability" | "attribute" | "handout" | "rollabletable" | "tableitem" | "macro" | "campaign";
 type RollType = "V" | "G" | "M" | "R" | "C";
 type RollResultType = "sum" | "success";
-type Roll20ObjectAsynchronousGetPropertyType = "notes" | "gmnotes" | "bio";
+type Layer = "gmlayer" | "objects" | "map" | "walls";
 
 /**
  * Roll20 objects are a special kind of JavaScript object. They represent something in your campaign, such as a token on the tabletop or a character in the journal, and there is some special consideration for using them. 
@@ -26,11 +26,19 @@ interface Roll20Object {
 	readonly id: string;
 
 	/**
+	 * Deletes the Roll20 object.
+	 */
+	remove(): void;
+}
+
+interface Roll20ObjectBase<TImmutableSynchronousGetProperties, TImmutableAsynchronousGetProperties, TMutableSynchronousGetProperties, TMutableAsynchronousGetProperties> extends Roll20Object {
+
+	/**
 	 * Gets the value of a specified property.
 	 * 
 	 * @param property The name of the property to get. If you are getting the value of a read-only property (one which starts with an underscore, like _id or _type), the leading underscore is not required.
 	 */
-	get(property: string): any;
+	get<K extends keyof (TImmutableSynchronousGetProperties & TMutableSynchronousGetProperties)>(property: K): (TImmutableSynchronousGetProperties & TMutableSynchronousGetProperties)[K];
 
 	/**
 	 * Gets the value of "notes", "gmnotes", or "bio" properties of a character or handout Roll20 object.
@@ -38,12 +46,7 @@ interface Roll20Object {
 	 * @param property The name of the property to get. If you are getting the value of a read-only property (one which starts with an underscore, like _id or _type), the leading underscore is not required.
 	 * @param callback A callback function which will receive the value of the property as a parameter.
 	 */
-	get(property: Roll20ObjectAsynchronousGetPropertyType, callback: (value: string) => void): void;
-
-	/**
-	 * Deletes the Roll20 object.
-	 */
-	remove(): void;
+	get<K extends keyof (TImmutableAsynchronousGetProperties & TMutableAsynchronousGetProperties)>(property: K, callback: (value: (TImmutableAsynchronousGetProperties & TMutableAsynchronousGetProperties)[K]) => void): void;
 
 	/**
 	 * Sets one specified property value.
@@ -51,7 +54,7 @@ interface Roll20Object {
 	 * @param property The name of the property to set.
 	 * @param value The value to set for the specified property.
 	 */
-	set(property: string, value: any): void;
+	set<K extends keyof (TMutableSynchronousGetProperties & TMutableAsynchronousGetProperties)>(property: K, value: (TMutableSynchronousGetProperties & TMutableAsynchronousGetProperties)[K]): void;
 
 	/**
 	 * Sets one specified property value and runs the character sheet workers related to that attribute (if any).
@@ -59,22 +62,177 @@ interface Roll20Object {
 	 * @param property The name of the property to set.
 	 * @param value The value to set for the specified property.
 	 */
-	setWithWorker(property: string, value: any): void;
+	setWithWorker<K extends keyof (TMutableSynchronousGetProperties & TMutableAsynchronousGetProperties)>(property: K, value: (TMutableSynchronousGetProperties & TMutableAsynchronousGetProperties)[K]): void;
 
 	/**
 	 * Sets one or more specified property values.
 	 * 
 	 * @param attributes The properties of the attributes object will be mapped to the properties of the Roll20 object.
 	 */
-	set(attributes: { [property: string]: any }): void;
+	set(attributes: Partial<TMutableSynchronousGetProperties & TMutableAsynchronousGetProperties>): void;
 
 	/**
 	 * Sets one or more specified property values and runs the character sheet workers related to that attribute (if any).
 	 * 
 	 * @param attributes The properties of the attributes object will be mapped to the properties of the Roll20 object.
 	 */
-	setWithWorker(attributes: { [property: string]: any }): void;
+	setWithWorker(attributes: Partial<TMutableSynchronousGetProperties & TMutableAsynchronousGetProperties>): void;
 }
+
+interface Roll20ObjectBaseProperties {
+	readonly _id: string;
+	readonly _type: ObjectType;
+}
+
+interface CampaignImmutableSynchronousGetProperties extends Roll20ObjectBaseProperties {
+	readonly _type: "campaign";
+	readonly _journalfolder: string;
+	readonly _jukeboxfolder: string;
+}
+
+interface CampaignMutableSynchronousGetProperties {
+	turnorder: string;
+	initiativepage: string;
+	playerpageid: string;
+	playerspecificpages: any; //TODO
+}
+
+interface Campaign extends Roll20ObjectBase<CampaignImmutableSynchronousGetProperties, never, CampaignMutableSynchronousGetProperties, never> { }
+
+interface TextImmutableSynchronousGetProperties extends Roll20ObjectBaseProperties {
+	readonly _type: "text";
+	readonly _pageid: string;
+}
+
+interface TextMutableSynchronousGetProperties {
+	top: number;
+	left: number;
+	width: number;
+	height: number;
+	text: string;
+	font_size: 8 | 10 | 12 | 14 | 16 | 18 | 20 | 22 | 26 | 32 | 40 | 56 | 72 | 100 | 200 | 300;
+	rotation: number;
+	color: string;
+	font_family: "unset" | "Arial" | "Patrick Hand" | "Contrail" | "Light" | "Candal";
+	layer: Layer;
+	controlledby: string;
+}
+
+interface Text extends Roll20ObjectBase<TextImmutableSynchronousGetProperties, never, TextMutableSynchronousGetProperties, never> { }
+
+interface GraphicImmutableSynchronousGetProperties extends Roll20ObjectBaseProperties {
+	readonly _type: "graphic";
+	readonly _subtype: "token" | "card";
+	readonly _cardId?: string;
+	readonly _pageid: ""
+}
+
+interface GraphicMutableSynchronousGetProperties {
+	imgsrc: string;
+	bar1_link: string;
+	bar2_link: string;
+	bar3_link: string;
+	represents: string;
+	left: number;
+	top: number;
+	width: number;
+	height: number;
+	rotation: number;
+	layer: Layer;
+	isdrawing: boolean;
+	flipv: boolean;
+	fliph: boolean;
+	name: string;
+	gmnotes: string;
+	controlledby: string;
+	bar1_value: string | number;
+	bar2_value: string | number;
+	bar3_value: string | number;
+	bar1_max: string | number;
+	bar2_max: string | number;
+	bar3_max: string | number;
+	aura1_radius: number | "";
+	aura2_radius: number | "";
+	aura1_color: string;
+	aura2_color: string;
+	aura1_square: boolean;
+	aura2_square: boolean;
+	tint_color: string;
+	statusmarkers: string;
+	showname: boolean;
+	showplayers_name: boolean;
+	showplayers_bar1: boolean;
+	showplayers_bar2: boolean;
+	showplayers_bar3: boolean;
+	showplayers_aura1: boolean;
+	showplayers_aura2: boolean;
+	playersedit_name: boolean;
+	playersedit_bar1: boolean;
+	playersedit_bar2: boolean;
+	playersedit_bar3: boolean;
+	playersedit_aura1: boolean;
+	playersedit_aura2: boolean;
+	light_radius: string;
+	light_dimradius: string;
+	light_otherplayers: boolean;
+	light_hassight: boolean;
+	light_angle: string;
+	light_losangle: string;
+	lastmove: string;
+	light_multiplier: string;
+}
+
+interface Graphic extends Roll20ObjectBase<GraphicImmutableSynchronousGetProperties, never, GraphicMutableSynchronousGetProperties, never> { }
+
+interface CharacterImmutableSynchronousGetProperties extends Roll20ObjectBaseProperties {
+	readonly _type: "character";
+}
+
+interface CharacterImmutableAsynchronousGetProperties {
+	readonly _defaulttoken: string;
+}
+
+interface CharacterMutableSynchronousGetProperties {
+	avatar: string;
+	name: string;
+	archived: boolean;
+	inplayerjournals: string;
+	controlledby: string;
+}
+
+interface CharacterMutableAsynchronousGetProperties {
+	bio: string;
+	gmsnotes: string;
+}
+
+interface Character extends Roll20ObjectBase<CharacterImmutableSynchronousGetProperties, CharacterImmutableAsynchronousGetProperties, CharacterMutableSynchronousGetProperties, CharacterMutableAsynchronousGetProperties> { }
+
+interface AttributeImmutableSynchronousGetProperties extends Roll20ObjectBaseProperties {
+	readonly _type: "attribute";
+	readonly _characterid: string;
+}
+
+interface AttributeMutableSynchronousGetProperties {
+	name: string;
+	current: string;
+	max: string;
+}
+
+interface Attribute extends Roll20ObjectBase<AttributeImmutableSynchronousGetProperties, never, AttributeMutableSynchronousGetProperties, never> { }
+
+interface AbilityImmutableSynchronousGetProperties extends Roll20ObjectBaseProperties {
+	readonly _type: "ability";
+	readonly _characterid: string;
+}
+
+interface AbilityMutableSynchronousGetProperties {
+	name: string;
+	description: string;
+	action: string;
+	istokenaction: boolean;
+}
+
+interface Ability extends Roll20ObjectBase<AbilityImmutableSynchronousGetProperties, never, AbilityMutableSynchronousGetProperties, never> { }
 
 interface ChatEventData {
 	readonly who: string;
@@ -181,13 +339,31 @@ interface ChatMessageHandlingOptions {
 	readonly use3d?: boolean;
 }
 
+interface PageChildObjectCreationProperties {
+	_pageid: string;
+}
+
+interface CharacterChildObjectCreationProperties {
+	_characterid: string;
+}
+
+type TextCreationProperties = PageChildObjectCreationProperties & Partial<TextMutableSynchronousGetProperties>;
+type GraphicCreationProperties = PageChildObjectCreationProperties & Partial<GraphicMutableSynchronousGetProperties>;
+type CharacterCreationProperties = Partial<CharacterMutableSynchronousGetProperties & CharacterMutableAsynchronousGetProperties>;
+type AttributeCreationProperties = CharacterChildObjectCreationProperties & Partial<AttributeMutableSynchronousGetProperties>;
+type AbilityCreationProperties = CharacterChildObjectCreationProperties & Partial<AbilityMutableSynchronousGetProperties>;
+
 /**
  * Creates a new Roll20 object.
  * 
  * @param type The type of Roll20 object to create. Only 'graphic', 'text', 'path', 'character', 'ability', 'attribute', 'handout', 'rollabletable', 'tableitem', and 'macro' may be created.
  * @param attributes The initial values to use for the Roll20 object's properties.
  */
-declare function createObj(type: ObjectType, attributes: { [attributeName: string]: any }): Roll20Object;
+declare function createObj(type: "text", attributes: TextCreationProperties): Text;
+declare function createObj(type: "graphic", attributes: GraphicCreationProperties): Graphic;
+declare function createObj(type: "character", attributes: CharacterCreationProperties): Character;
+declare function createObj(type: "attribute", attributes: AttributeCreationProperties): Attribute;
+declare function createObj(type: "ability", attributes: AbilityCreationProperties): Ability;
 
 /**
  * Gets all Roll20 objects with properties that match a given set of attributes.
@@ -203,7 +379,11 @@ declare function findObjs(attributes: { [attributeName: string]: any }, options?
  * @param type The type of Roll20 object to get.
  * @param id The unique id for the Roll20 object to get.
  */
-declare function getObj(type: ObjectType, id: string): Roll20Object;
+declare function getObj(type: "text", id: string): Text;
+declare function getObj(type: "graphic", id: string): Graphic;
+declare function getObj(type: "character", id: string): Character;
+declare function getObj(type: "attribute", id: string): Attribute;
+declare function getObj(type: "ability", id: string): Ability;
 
 /**
  * Logs a message to the API console.
@@ -253,3 +433,8 @@ declare function sendChat(speakingAs: string, message: string, callback?: (opera
  * @param str The string to be decoded.
  */
 declare function unescape(str: string): string;
+
+/**
+ * Returns the Campaign object. Since there is only one campaign, this global always points to the only campaign in the game.
+ */
+declare function Campaign(): Campaign;

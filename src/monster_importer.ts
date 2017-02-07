@@ -12,10 +12,8 @@ class MonsterImporter {
 		return this._errorObject;
 	}
 
-	public parseGmNotesFromToken(token: Roll20Object): boolean {
-		if (token.get("type") !== "graphic" && token.get("subtype") !== "token") { return this.setError("Object to parse from must be a token.", token); }
-
-		let gmnotes = token.get("gmnotes") as string;
+	public parseGmNotesFromToken(token: Graphic): boolean {
+		let gmnotes = token.get("gmnotes");
 		if (!gmnotes) { return this.setError("Token must have GM notes.", gmnotes); }
 
 		// clean gm notes
@@ -158,7 +156,7 @@ class MonsterImporter {
 		token.set("bar3_value", hp);
 		token.set("bar3_max", hp);
 		// red aura
-		token.set("aura1_radius", "0");
+		token.set("aura1_radius", 0);
 		token.set("aura1_color", "#660000");
 		token.set("aura1_square", true);
 		token.set("showplayers_aura1", true);
@@ -170,8 +168,8 @@ class MonsterImporter {
 
 	private AddAttribute(attr: string, value: any, charid: string, setMax?: boolean) {
 		if (value) {
-			const attribute: any = {
-				characterid: charid,
+			const attribute: AttributeCreationProperties = {
+				_characterid: charid,
 				current: value,
 				name: attr,
 			};
@@ -187,7 +185,7 @@ class MonsterImporter {
 	private AddPower(name: string, action: string, charid: string) {
 		createObj("ability", {
 			action,
-			characterid: charid,
+			_characterid: charid,
 			description: "",
 			istokenaction: true,
 			name,
@@ -214,7 +212,7 @@ on("ready", () => {
 		if (selected._type !== "graphic") { return handleError("Selected object must be a graphic.", selected); }
 
 		const token = getObj(selected._type, selected._id);
-		if (token.get("subtype") !== "token") { return handleError("Selected graphic must be a token.", token); }
+		if (token.get("_subtype") !== "token") { return handleError("Selected graphic must be a token.", token); }
 
 		const importer = new MonsterImporter();
 		const success = importer.parseGmNotesFromToken(token);

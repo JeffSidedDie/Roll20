@@ -57,7 +57,7 @@ interface Roll20ObjectBase<TImmutableSynchronousGetProperties, TImmutableAsynchr
 	set<K extends keyof (TMutableSynchronousGetProperties & TMutableAsynchronousGetProperties)>(property: K, value: (TMutableSynchronousGetProperties & TMutableAsynchronousGetProperties)[K]): void;
 
 	/**
-	 * Sets one specified property value and runs the character sheet workers related to that attribute (if any).
+	 * Sets one specified property value and runs the character sheet workers related to that property (if any).
 	 * 
 	 * @param property The name of the property to set.
 	 * @param value The value to set for the specified property.
@@ -67,16 +67,16 @@ interface Roll20ObjectBase<TImmutableSynchronousGetProperties, TImmutableAsynchr
 	/**
 	 * Sets one or more specified property values.
 	 * 
-	 * @param attributes The properties of the attributes object will be mapped to the properties of the Roll20 object.
+	 * @param properties The properties of the properties object will be mapped to the properties of the Roll20 object.
 	 */
-	set(attributes: Partial<TMutableSynchronousGetProperties & TMutableAsynchronousGetProperties>): void;
+	set(properties: Partial<TMutableSynchronousGetProperties & TMutableAsynchronousGetProperties>): void;
 
 	/**
-	 * Sets one or more specified property values and runs the character sheet workers related to that attribute (if any).
+	 * Sets one or more specified property values and runs the character sheet workers related to that property (if any).
 	 * 
-	 * @param attributes The properties of the attributes object will be mapped to the properties of the Roll20 object.
+	 * @param properties The properties of the properties object will be mapped to the properties of the Roll20 object.
 	 */
-	setWithWorker(attributes: Partial<TMutableSynchronousGetProperties & TMutableAsynchronousGetProperties>): void;
+	setWithWorker(properties: Partial<TMutableSynchronousGetProperties & TMutableAsynchronousGetProperties>): void;
 }
 
 interface Roll20ObjectBaseProperties {
@@ -357,21 +357,21 @@ type AbilityCreationProperties = CharacterChildObjectCreationProperties & Partia
  * Creates a new Roll20 object.
  * 
  * @param type The type of Roll20 object to create. Only 'graphic', 'text', 'path', 'character', 'ability', 'attribute', 'handout', 'rollabletable', 'tableitem', and 'macro' may be created.
- * @param attributes The initial values to use for the Roll20 object's properties.
+ * @param properties The initial values to use for the Roll20 object's properties.
  */
-declare function createObj(type: "text", attributes: TextCreationProperties): Text;
-declare function createObj(type: "graphic", attributes: GraphicCreationProperties): Graphic;
-declare function createObj(type: "character", attributes: CharacterCreationProperties): Character;
-declare function createObj(type: "attribute", attributes: AttributeCreationProperties): Attribute;
-declare function createObj(type: "ability", attributes: AbilityCreationProperties): Ability;
+declare function createObj(type: "text", properties: TextCreationProperties): Text;
+declare function createObj(type: "graphic", properties: GraphicCreationProperties): Graphic;
+declare function createObj(type: "character", properties: CharacterCreationProperties): Character;
+declare function createObj(type: "attribute", properties: AttributeCreationProperties): Attribute;
+declare function createObj(type: "ability", properties: AbilityCreationProperties): Ability;
 
 /**
- * Gets all Roll20 objects with properties that match a given set of attributes.
+ * Gets all Roll20 objects with properties that match a given set of properties.
  * 
- * @param attributes A collection of key:value pairs to match with Roll20 objects in the campaign.
- * @param options If options.caseInsensitive is true, string comparisons between Roll20 objects and attributes will be case-insensitive.
+ * @param properties A collection of key:value pairs to match with Roll20 objects in the campaign.
+ * @param options If options.caseInsensitive is true, string comparisons between Roll20 objects and properties will be case-insensitive.
  */
-declare function findObjs(attributes: { [attributeName: string]: any }, options?: FindObjectOptions): Roll20Object[];
+declare function findObjs(properties: { [property: string]: any }, options?: FindObjectOptions): Roll20Object[];
 
 /**
  * Gets a specific Roll20 object.

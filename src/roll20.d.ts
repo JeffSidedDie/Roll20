@@ -7,9 +7,6 @@ declare var _: _.UnderscoreStatic;
  */
 declare var state: any;
 
-type ReadyEventType = "ready";
-type ChatEventType = "chat:message";
-type ChatEventDataType = "general" | "rollresult" | "gmrollresult" | "emote" | "whisper" | "desc" | "api";
 type ObjectType = "graphic" | "text" | "path" | "character" | "ability" | "attribute" | "handout" | "rollabletable" | "tableitem" | "macro" | "campaign";
 type RollType = "V" | "G" | "M" | "R" | "C";
 type RollResultType = "sum" | "success";
@@ -237,7 +234,7 @@ interface Ability extends Roll20ObjectBase<AbilityImmutableSynchronousGetPropert
 interface ChatEventData {
 	readonly who: string;
 	readonly playerid: string;
-	readonly type: ChatEventDataType;
+	readonly type: "general" | "rollresult" | "gmrollresult" | "emote" | "whisper" | "desc" | "api";
 	readonly content: string;
 	readonly inlinerolls?: InlineRollSummary[];
 	readonly rolltemplate?: string;
@@ -414,8 +411,8 @@ declare function log(message: any): void;
  * * destroy events have an obj parameter, which is a reference to the no-longer existing Roll20 object.
  * * chat events have a msg parameter, which contains the details of the message that was sent to the chat.
  */
-declare function on(event: ChatEventType, callback: (msg: ChatEventData) => void): void;
-declare function on(event: ReadyEventType, callback: () => void): void;
+declare function on(event: "chat:message", callback: (msg: ChatEventData) => void): void;
+declare function on(event: "ready", callback: () => void): void;
 
 /**
  * Sends a chat message.

@@ -231,6 +231,13 @@ interface AbilityMutableSynchronousGetProperties {
 
 interface Ability extends Roll20ObjectBase<AbilityImmutableSynchronousGetProperties, never, AbilityMutableSynchronousGetProperties, never> { }
 
+interface TurnOrdering {
+	readonly id: string;
+	readonly pr: number;
+	readonly custom: string;
+	readonly _pageid: string;
+}
+
 interface ChatEventData {
 	readonly who: string;
 	readonly playerid: string;
@@ -411,8 +418,9 @@ declare function log(message: any): void;
  * * destroy events have an obj parameter, which is a reference to the no-longer existing Roll20 object.
  * * chat events have a msg parameter, which contains the details of the message that was sent to the chat.
  */
-declare function on(event: "chat:message", callback: (msg: ChatEventData) => void): void;
 declare function on(event: "ready", callback: () => void): void;
+declare function on(event: "chat:message", callback: (msg: ChatEventData) => void): void;
+declare function on(event: "change:campaign:turnorder", callback: (obj: Campaign, prev: CampaignImmutableSynchronousGetProperties & CampaignMutableSynchronousGetProperties) => void): void;
 
 /**
  * Sends a chat message.

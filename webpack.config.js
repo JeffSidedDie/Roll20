@@ -4,6 +4,7 @@ module.exports = [
     {
         entry: {
             monster_importer: ["./build/monster_importer.js"],
+            turn_tracker: ["./build/turn_tracker.js"],
         },
         output: {
             path: __dirname + "/lib",

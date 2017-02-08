@@ -45,7 +45,7 @@
                 incrementTurn(first);
                 log("Normal");
             }
-            else if (lastId === first.id & currentId === next.id) { //Backed up
+            else if (lastId === first.id && currentId === next.id) { //Backed up
                 decrementTurn(next);
                 log("Backup");
             }

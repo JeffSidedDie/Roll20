@@ -48,6 +48,9 @@ class MonsterImporter extends Roll20ApiScript {
 			avatar: token.get("imgsrc"),
 			name: monsterName,
 		});
+		if (!character) {
+			return this.setError("Could not create character.", character);
+		}
 
 		// Stats
 		this.AddAttribute("level", xml.valueWithPath("Level"), character.id);
@@ -178,7 +181,7 @@ class MonsterImporter extends Roll20ApiScript {
 		if (selected._type !== "graphic") { return this.handleError("Selected object must be a graphic.", selected); }
 
 		const token = getObj(selected._type, selected._id);
-		if (token.get("_subtype") !== "token") { return this.handleError("Selected graphic must be a token.", token); }
+		if (!token || token.get("_subtype") !== "token") { return this.handleError("Selected graphic must be a token.", token); }
 
 		const success = this.parseGmNotesFromToken(token);
 		if (!success) {

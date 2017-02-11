@@ -210,7 +210,9 @@ class TurnTracker extends Roll20ApiScript {
 	private showCurrentTurn() {
 		const currentCombatantId = this.currentTurnOrder[0].id;
 		const token = getObj("graphic", currentCombatantId);
-		this.sendChatFromScript("<h3> " + token.get("name") + " - Turn " + this.turns[currentCombatantId] + "</h3>");
+		if (token) {
+			this.sendChatFromScript("<h3> " + token.get("name") + " - Turn " + this.turns[currentCombatantId] + "</h3>");
+		}
 	};
 
 	private incrementTurn(combatant: TurnOrdering) {

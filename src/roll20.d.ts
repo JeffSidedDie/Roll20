@@ -363,11 +363,11 @@ type AbilityCreationProperties = CharacterChildObjectCreationProperties & Partia
  * @param type The type of Roll20 object to create. Only 'graphic', 'text', 'path', 'character', 'ability', 'attribute', 'handout', 'rollabletable', 'tableitem', and 'macro' may be created.
  * @param properties The initial values to use for the Roll20 object's properties.
  */
-declare function createObj(type: "text", properties: TextCreationProperties): Text;
-declare function createObj(type: "graphic", properties: GraphicCreationProperties): Graphic;
-declare function createObj(type: "character", properties: CharacterCreationProperties): Character;
-declare function createObj(type: "attribute", properties: AttributeCreationProperties): Attribute;
-declare function createObj(type: "ability", properties: AbilityCreationProperties): Ability;
+declare function createObj(type: "text", properties: TextCreationProperties): Text | undefined;
+declare function createObj(type: "graphic", properties: GraphicCreationProperties): Graphic | undefined;
+declare function createObj(type: "character", properties: CharacterCreationProperties): Character | undefined;
+declare function createObj(type: "attribute", properties: AttributeCreationProperties): Attribute | undefined;
+declare function createObj(type: "ability", properties: AbilityCreationProperties): Ability | undefined;
 
 /**
  * Gets all Roll20 objects with properties that match a given set of properties.
@@ -378,16 +378,33 @@ declare function createObj(type: "ability", properties: AbilityCreationPropertie
 declare function findObjs(properties: { [property: string]: any }, options?: FindObjectOptions): Roll20Object[];
 
 /**
+ * Will execute the provided callback funtion on each object, and if the callback returns true, the object will be included in the result array.
+ */
+declare function filterObjs(callback: (obj: Roll20Object) => boolean): Roll20Object[];
+
+/**
+ * Returns an array of all the objects in the Game (all types). Equivalent to calling filterObjs and just returning true for every object.
+ */
+declare function getAllObjs(): Roll20Object[];
+
+/**
  * Gets a specific Roll20 object.
  * 
  * @param type The type of Roll20 object to get.
  * @param id The unique id for the Roll20 object to get.
  */
-declare function getObj(type: "text", id: string): Text;
-declare function getObj(type: "graphic", id: string): Graphic;
-declare function getObj(type: "character", id: string): Character;
-declare function getObj(type: "attribute", id: string): Attribute;
-declare function getObj(type: "ability", id: string): Ability;
+declare function getObj(type: "text", id: string): Text | undefined;
+declare function getObj(type: "graphic", id: string): Graphic | undefined;
+declare function getObj(type: "character", id: string): Character | undefined;
+declare function getObj(type: "attribute", id: string): Attribute | undefined;
+declare function getObj(type: "ability", id: string): Ability | undefined;
+
+/**
+ * Gets the value of an attribute, using the default value from the character sheet if the attribute is not present. value_type is an optional parameter, which you can use to specify "current" or "max".
+ * 
+ * getAttrByName will only get the value of the attribute, not the attribute object itself. If you wish to reference properties of the attribute other than "current" or "max", or if you wish to change properties of the attribute, you must use one of the other functions above, such as findObjs.
+ */
+declare function getAttrByName(character_id: string, attribute_name: string, value_type?: "current" | "max"): string;
 
 /**
  * Logs a message to the API console.

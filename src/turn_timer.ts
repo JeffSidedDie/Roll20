@@ -15,7 +15,7 @@ class TurnTimer extends Roll20ApiScript {
 
 		if (!this.text) {
 			const currentPageId = Campaign().get("playerpageid");
-			this.text = createObj("text", {
+			const text = createObj("text", {
 				_pageid: currentPageId,
 				color: "rgb(0,255,0)",
 				font_family: "Candal",
@@ -26,7 +26,12 @@ class TurnTimer extends Roll20ApiScript {
 				top: 100,
 				width: 100,
 			});
-			log("Timer text created");
+			if (!text) {
+				throw new Error("Could not create timer text.");
+			} else {
+				this.text = text;
+				log("Timer text created");
+			}
 		}
 
 		this.time = 10;

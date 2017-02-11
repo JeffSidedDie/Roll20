@@ -35,6 +35,8 @@ class Tracker {
 			return;
 		}
 
+		let possibleTurnChange = false;
+
 		// First turn of combat
 		if (this.currentTurnOrder.length === 0) {
 			_.forEach(incomingTurnOrder, (incomingCombatant) => {
@@ -42,110 +44,115 @@ class Tracker {
 			});
 			this.incrementTurn(incomingTurnOrder[0]);
 			log("First Turn");
-		}
+			possibleTurnChange = true;
 
-		// Find expected values to determine if order changed
-		const currentCombatantId = this.currentTurnOrder[0].id;
-		const lastCombatantId = this.currentTurnOrder[this.currentTurnOrder.length - 1].id;
+		} else {
+			// Find expected values to determine if order changed
+			const currentCombatantId = this.currentTurnOrder[0].id;
+			const lastCombatantId = this.currentTurnOrder[this.currentTurnOrder.length - 1].id;
 
-		let orderChanged = false;
-		let orderFirstChangedIndex = -1;
-		let orderLastChangedIndex = -1;
+			let orderFirstChangedIndex = -1;
+			let orderLastChangedIndex = -1;
 
-		_.forEach(incomingTurnOrder, (incomingCombatant, index) => {
-			const correspondingCurrentCombatant = this.currentTurnOrder[index];
-			if (!correspondingCurrentCombatant || incomingCombatant.id !== correspondingCurrentCombatant.id) { // Combatant added or order changed
-				if (!orderChanged) {
-					orderChanged = true;
-					orderFirstChangedIndex = index;
+			_.forEach(incomingTurnOrder, (incomingCombatant, index) => {
+				const correspondingCurrentCombatant = this.currentTurnOrder[index];
+				if (!correspondingCurrentCombatant || incomingCombatant.id !== correspondingCurrentCombatant.id) { // Combatant added or order changed
+					if (!possibleTurnChange) {
+						possibleTurnChange = true;
+						orderFirstChangedIndex = index;
+					}
+					orderLastChangedIndex = index;
+
+				} else if (incomingCombatant.pr !== correspondingCurrentCombatant.pr) { // Initiative changed
+					log("Initiative Changed");
+
+				} else if (incomingCombatant._pageid !== correspondingCurrentCombatant._pageid) { // Combatant changed pages
+					log("Pageid Changed");
+
+				} else if (incomingCombatant.custom !== correspondingCurrentCombatant.custom) { // Custom changed?
+					log("Custom Changed");
 				}
-				orderLastChangedIndex = index;
+			});
 
-			} else if (incomingCombatant.pr !== correspondingCurrentCombatant.pr) { // Initiative changed
-				log("Initiative Changed");
+			// Figure out specifically how order changed
+			if (possibleTurnChange) {
+				if (this.currentTurnOrder.length < incomingTurnOrder.length) { // Combatant added
+					this.turns[incomingTurnOrder[orderFirstChangedIndex].id] = this.round - 1;
+					possibleTurnChange = false;
+					log("Combatant Added");
 
-			} else if (incomingCombatant._pageid !== correspondingCurrentCombatant._pageid) { // Combatant changed pages
-				log("Pageid Changed");
-
-			} else if (incomingCombatant.custom !== correspondingCurrentCombatant.custom) { // Custom changed?
-				log("Custom Changed");
-			}
-		});
-
-		// Figure out specifically how order changed
-		if (orderChanged) {
-			if (this.currentTurnOrder.length < incomingTurnOrder.length) { // Combatant added
-				this.turns[incomingTurnOrder[orderFirstChangedIndex].id] = this.round - 1;
-				orderChanged = false;
-				log("Combatant Added");
-
-			} else if (this.currentTurnOrder.length > incomingTurnOrder.length) { // Combatant removed
-				delete this.turns[this.currentTurnOrder[orderFirstChangedIndex].id];
-				orderChanged = false;
-				log("Combatant Removed");
-
-			} else {
-				// Ordering actually changed
-				if (incomingTurnOrder[incomingTurnOrder.length - 1].id === currentCombatantId) { // Expected progression
-					this.incrementTurn(incomingTurnOrder[0]);
-					log("Normal Turn");
-
-				} else if (incomingTurnOrder[0].id === lastCombatantId) { // Backed up
-					this.decrementTurn(this.currentTurnOrder[0]);
-					log("Backup Turn");
+				} else if (this.currentTurnOrder.length > incomingTurnOrder.length) { // Combatant removed
+					delete this.turns[this.currentTurnOrder[orderFirstChangedIndex].id];
+					possibleTurnChange = false;
+					log("Combatant Removed");
 
 				} else {
-					let isLegalMove = true;
-					// Check to make sure the combatant that moved did not move past a combatant that has had more or less turns
-					if (incomingTurnOrder[orderLastChangedIndex - 1].id === this.currentTurnOrder[orderLastChangedIndex].id) { // Combatant moved down
-						const movedCombatant = incomingTurnOrder[orderLastChangedIndex];
-						let movedCombatantCurrentTurns = this.turns[movedCombatant.id];
-						if (movedCombatant.id === currentCombatantId) {
-							movedCombatantCurrentTurns -= 1; // Subtract a turn from current combatant when delaying since they will decremented
-						}
-						// Moving down the turn order is legal as long as every combatant now-ahead the moved one has taken same turns
-						for (let i = orderFirstChangedIndex; i <= orderLastChangedIndex - 1; i++) {
-							if (this.turns[incomingTurnOrder[i].id] !== movedCombatantCurrentTurns) {
-								isLegalMove = false;
+					// Ordering actually changed
+					if (incomingTurnOrder[incomingTurnOrder.length - 1].id === currentCombatantId) { // Expected progression
+						this.incrementTurn(incomingTurnOrder[0]);
+						log("Normal Turn");
+
+					} else if (incomingTurnOrder[0].id === lastCombatantId) { // Backed up
+						this.decrementTurn(this.currentTurnOrder[0]);
+						log("Backup Turn");
+
+					} else {
+						let isLegalMove = true;
+						// Check to make sure the combatant that moved did not move past a combatant that has had more or less turns
+						if (incomingTurnOrder[orderLastChangedIndex - 1].id === this.currentTurnOrder[orderLastChangedIndex].id) { // Combatant moved down
+							const movedCombatant = incomingTurnOrder[orderLastChangedIndex];
+							let movedCombatantCurrentTurns = this.turns[movedCombatant.id];
+							if (movedCombatant.id === currentCombatantId) {
+								movedCombatantCurrentTurns -= 1; // Subtract a turn from current combatant when delaying since they will decremented
+							}
+							// Moving down the turn order is legal as long as every combatant now-ahead the moved one has taken same turns
+							for (let i = orderFirstChangedIndex; i <= orderLastChangedIndex - 1; i++) {
+								if (this.turns[incomingTurnOrder[i].id] !== movedCombatantCurrentTurns) {
+									isLegalMove = false;
+								}
+							}
+							if (isLegalMove) {
+								if (movedCombatant.id === currentCombatantId) { // Current combatant delayed
+									this.decrementTurn(this.currentTurnOrder[0]);
+									this.incrementTurn(incomingTurnOrder[0]);
+								} else {
+									possibleTurnChange = false;
+								}
+								log("Move Down");
+							}
+						} else { // Combatant moved up
+							const movedCombatant = incomingTurnOrder[orderFirstChangedIndex];
+							const movedCombatantCurrentTurns = this.turns[movedCombatant.id];
+							// Moving up the turn order is legal as long as every combatant now-before the moved one has taken same turns
+							for (let i = orderFirstChangedIndex + 1; i <= orderLastChangedIndex; i++) {
+								const incomingCombatant = incomingTurnOrder[i];
+								let incomingCombatantTurns = this.turns[incomingCombatant.id];
+								if (incomingCombatant.id === currentCombatantId) {
+									incomingCombatantTurns -= 1; // Subtract a turn from current combatant when interrupting since they will decremented
+								}
+								if (this.turns[incomingCombatant.id] !== movedCombatantCurrentTurns) {
+									isLegalMove = false;
+								}
+							}
+							if (isLegalMove) {
+								if (orderFirstChangedIndex === 0) { // Current combatant interrupted
+									this.decrementTurn(this.currentTurnOrder[0]);
+									this.incrementTurn(incomingTurnOrder[0]);
+								} else {
+									possibleTurnChange = false;
+								}
+								log("Move Down");
 							}
 						}
-						if (isLegalMove) {
-							if (movedCombatant.id === currentCombatantId) { // Current combatant delayed
-								this.decrementTurn(this.currentTurnOrder[0]);
-								this.incrementTurn(incomingTurnOrder[0]);
-							}
-							log("Move Down");
+						if (!isLegalMove) {
+							throw new Error("Illegal move.");
 						}
-					} else { // Combatant moved up
-						const movedCombatant = incomingTurnOrder[orderFirstChangedIndex];
-						const movedCombatantCurrentTurns = this.turns[movedCombatant.id];
-						// Moving up the turn order is legal as long as every combatant now-before the moved one has taken same turns
-						for (let i = orderFirstChangedIndex + 1; i <= orderLastChangedIndex; i++) {
-							const incomingCombatant = incomingTurnOrder[i];
-							let incomingCombatantTurns = this.turns[incomingCombatant.id];
-							if (incomingCombatant.id === currentCombatantId) {
-								incomingCombatantTurns -= 1; // Subtract a turn from current combatant when interrupting since they will decremented
-							}
-							if (this.turns[incomingCombatant.id] !== movedCombatantCurrentTurns) {
-								isLegalMove = false;
-							}
-						}
-						if (isLegalMove) {
-							if (orderFirstChangedIndex === 0) { // Current combatant interrupted
-								this.decrementTurn(this.currentTurnOrder[0]);
-								this.incrementTurn(incomingTurnOrder[0]);
-							}
-							log("Move Down");
-						}
-					}
-					if (!isLegalMove) {
-						throw new Error("Illegal move.");
 					}
 				}
 			}
 		}
 		this.currentTurnOrder = incomingTurnOrder;
-		if (orderChanged) {
+		if (possibleTurnChange) {
 			this.showCurrentTurn();
 		}
 	};

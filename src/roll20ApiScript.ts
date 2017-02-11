@@ -18,7 +18,7 @@ export abstract class Roll20ApiScript {
 		this.apiCommand = apiCommand;
 	}
 
-	public register(): void {
+	public register() {
 		if (!this._isRegistered) {
 			on("ready", () => {
 				on("chat:message", (message) => {
@@ -34,8 +34,13 @@ export abstract class Roll20ApiScript {
 		}
 	}
 
-	protected sendChatFromScript(message: string, callback?: (operations: ChatEventData[]) => void, options?: ChatMessageHandlingOptions): void {
+	protected sendChatFromScript(message: string, callback?: (operations: ChatEventData[]) => void, options?: ChatMessageHandlingOptions) {
 		sendChat(this.scriptName, message, callback, options);
+	}
+
+	protected handleError(message: string, object: any) {
+		sendChat(this.scriptName, message);
+		log(new Date().toLocaleString() + ": " + this.scriptName + " - " + message + " Value: " + JSON.stringify(object));
 	}
 
 	/**

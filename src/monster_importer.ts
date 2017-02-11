@@ -1,8 +1,13 @@
 ﻿import { XmlDocument } from "xmldoc";
+import { Roll20ApiScript } from "./roll20ApiScript";
 
-class MonsterImporter {
+class MonsterImporter extends Roll20ApiScript {
 	private _errorMessage: string;
 	private _errorObject: any;
+
+	constructor() {
+		super("Monster Importer", "import-monster");
+	}
 
 	public get errorMessage() {
 		return this._errorMessage;
@@ -156,7 +161,7 @@ class MonsterImporter {
 		token.set("bar3_value", hp);
 		token.set("bar3_max", hp);
 		// red aura
-		token.set("aura1_radius", 0);
+		token.set("aura1_radius", "0");
 		token.set("aura1_color", "#660000");
 		token.set("aura1_square", true);
 		token.set("showplayers_aura1", true);
@@ -164,6 +169,21 @@ class MonsterImporter {
 		// clean up gm notes
 		token.set("gmnotes", "");
 		return true;
+	}
+
+	protected apiChatMessageHandler(message: ApiChatEventData) {
+		if (!message.selected || message.selected.length !== 1) { return this.handleError("Exactly one object must be selected.", message.selected); }
+
+		const selected = message.selected[0];
+		if (selected._type !== "graphic") { return this.handleError("Selected object must be a graphic.", selected); }
+
+		const token = getObj(selected._type, selected._id);
+		if (token.get("_subtype") !== "token") { return this.handleError("Selected graphic must be a token.", token); }
+
+		const success = this.parseGmNotesFromToken(token);
+		if (!success) {
+			return this.handleError(this.errorMessage, this.errorObject);
+		}
 	}
 
 	private AddAttribute(attr: string, value: any, charid: string, setMax?: boolean) {
@@ -199,31 +219,4 @@ class MonsterImporter {
 	}
 }
 
-on("ready", () => {
-	on("chat:message", (msg) => {
-		// silently ignore if message isn't for this
-		if (msg.type !== "api") { return; }
-		if (msg.content !== "!import-monster") { return; }
-
-		const apiMsg = msg as ApiChatEventData;
-		if (!apiMsg.selected || apiMsg.selected.length !== 1) { return handleError("Exactly one object must be selected.", apiMsg.selected); }
-
-		const selected = apiMsg.selected[0];
-		if (selected._type !== "graphic") { return handleError("Selected object must be a graphic.", selected); }
-
-		const token = getObj(selected._type, selected._id);
-		if (token.get("_subtype") !== "token") { return handleError("Selected graphic must be a token.", token); }
-
-		const importer = new MonsterImporter();
-		const success = importer.parseGmNotesFromToken(token);
-		if (!success) {
-			return handleError(importer.errorMessage, importer.errorObject);
-		}
-
-		function handleError(message: string, object: any) {
-			sendChat("Monster Importer", "/w \"" + msg.who + "\" " + message);
-			log(new Date().toLocaleString() + ": Monster Importer - " + message + " Value: " + JSON.stringify(object));
-		}
-	});
-	log(new Date().toLocaleString() + ": Monster Importer - Loading complete.");
-});
+new MonsterImporter().register();

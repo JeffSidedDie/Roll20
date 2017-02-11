@@ -148,8 +148,8 @@ interface GraphicMutableSynchronousGetProperties {
 	bar1_max: string | number;
 	bar2_max: string | number;
 	bar3_max: string | number;
-	aura1_radius: number | "";
-	aura2_radius: number | "";
+	aura1_radius: string;
+	aura2_radius: string;
 	aura1_color: string;
 	aura2_color: string;
 	aura1_square: boolean;

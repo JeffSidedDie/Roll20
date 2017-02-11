@@ -8,7 +8,7 @@ class TurnTracker extends Roll20ApiScript {
 	private turns: { [id: string]: number } = {};
 
 	constructor() {
-		super("TurnTracker", "tracker");
+		super("Turn Tracker", "tracker");
 	}
 
 	public isActive() {

@@ -1,4 +1,4 @@
-class Tracker {
+class TurnTracker {
 	private active = false;
 	private round = 0;
 	private currentTurnOrder: TurnOrdering[] = [];
@@ -12,7 +12,7 @@ class Tracker {
 		this.active = true;
 		this.round = 1;
 		this.showRound();
-		log("StatusTracker started.");
+		log("TurnTracker started.");
 	};
 
 	public stop() {
@@ -20,7 +20,7 @@ class Tracker {
 		this.round = 0;
 		this.turns = {};
 		this.currentTurnOrder = [];
-		log("StatusTracker stopped.");
+		log("TurnTracker stopped.");
 	};
 
 	public processTurnOrder(incomingTurnOrder: TurnOrdering[]) {
@@ -195,7 +195,7 @@ class Tracker {
 }
 
 on("ready", () => {
-	const tracker = new Tracker();
+	const tracker = new TurnTracker();
 
 	on("change:campaign:turnorder", (currentCampaign, previousCampaign) => {
 		const currentTurnOrder = JSON.parse(currentCampaign.get("turnorder") || "[]") as TurnOrdering[];

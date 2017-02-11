@@ -1,8 +1,15 @@
-class TurnTracker {
+import { Roll20ApiScript } from "./roll20ApiScript";
+
+class TurnTracker extends Roll20ApiScript {
+
 	private active = false;
 	private round = 0;
 	private currentTurnOrder: TurnOrdering[] = [];
 	private turns: { [id: string]: number } = {};
+
+	constructor() {
+		super("TurnTracker", "tracker");
+	}
 
 	public isActive() {
 		return this.active;
@@ -145,6 +152,7 @@ class TurnTracker {
 							}
 						}
 						if (!isLegalMove) {
+							log("Illegal Move");
 							throw new Error("Illegal move.");
 						}
 					}
@@ -157,14 +165,52 @@ class TurnTracker {
 		}
 	};
 
+	protected apiChatMessageHandler(message: ApiChatEventData) {
+		const commands = message.content.split(" ");
+		if (commands.length !== 2) {
+			this.sendChatFromScript("No command given.");
+			return;
+		}
+		switch (commands[1]) {
+			case "start":
+				const campaign = Campaign();
+				const turnOrderStr = campaign.get("turnorder");
+				let turnOrder = JSON.parse(turnOrderStr || "[]") as TurnOrdering[];
+				turnOrder = _.sortBy(turnOrder, (t) => t.pr).reverse();
+				const newTurnOrderStr = JSON.stringify(turnOrder);
+				campaign.set("turnorder", newTurnOrderStr);
+				this.start();
+				this.processTurnOrder(turnOrder);
+
+				on("change:campaign:turnorder", (currentCampaign, previousCampaign) => {
+					const currentTurnOrder = JSON.parse(currentCampaign.get("turnorder") || "[]") as TurnOrdering[];
+					if (this.isActive()) {
+						try {
+							this.processTurnOrder(currentTurnOrder);
+						} catch (e) {
+							this.sendChatFromScript(e);
+							currentCampaign.set("turnorder", previousCampaign.turnorder);
+						}
+					}
+				});
+				break;
+			case "stop":
+				this.stop();
+				break;
+			default:
+				this.sendChatFromScript("Unknown command.");
+				break;
+		}
+	}
+
 	private showRound() {
-		this.sendChatMessage("<h2>Round " + this.round + "</h2>");
+		this.sendChatFromScript("<h2>Round " + this.round + "</h2>");
 	}
 
 	private showCurrentTurn() {
 		const currentCombatantId = this.currentTurnOrder[0].id;
 		const token = getObj("graphic", currentCombatantId);
-		this.sendChatMessage("<h3> " + token.get("name") + " - Turn " + this.turns[currentCombatantId] + "</h3>");
+		this.sendChatFromScript("<h3> " + token.get("name") + " - Turn " + this.turns[currentCombatantId] + "</h3>");
 	};
 
 	private incrementTurn(combatant: TurnOrdering) {
@@ -188,54 +234,6 @@ class TurnTracker {
 			}
 		}
 	}
-
-	private sendChatMessage(message: string) {
-		sendChat("TurnTracker", message);
-	}
 }
 
-on("ready", () => {
-	const tracker = new TurnTracker();
-
-	on("change:campaign:turnorder", (currentCampaign, previousCampaign) => {
-		const currentTurnOrder = JSON.parse(currentCampaign.get("turnorder") || "[]") as TurnOrdering[];
-		if (tracker.isActive()) {
-			try {
-				tracker.processTurnOrder(currentTurnOrder);
-			} catch (e) {
-				currentCampaign.set("turnorder", previousCampaign.turnorder);
-			}
-		}
-	});
-
-	on("chat:message", (message) => {
-		if (message.type !== "api") { return; }
-		const apiMessage = message as ApiChatEventData;
-		if (apiMessage.content.indexOf("!tracker ") !== 0) { return; }
-		const commands = apiMessage.content.split(" ");
-		if (commands.length !== 2) {
-			sendChat("TurnTracker", "No command given.");
-			return;
-		}
-		switch (commands[1]) {
-			case "start":
-				const campaign = Campaign();
-				const turnOrderStr = campaign.get("turnorder");
-				let turnOrder = JSON.parse(turnOrderStr || "[]") as TurnOrdering[];
-				turnOrder = _.sortBy(turnOrder, (t) => t.pr).reverse();
-				const newTurnOrderStr = JSON.stringify(turnOrder);
-				campaign.set("turnorder", newTurnOrderStr);
-				tracker.start();
-				tracker.processTurnOrder(turnOrder);
-				break;
-			case "stop":
-				tracker.stop();
-				break;
-			default:
-				sendChat("TurnTracker", "Unknown command.");
-				break;
-		}
-	});
-
-	log(new Date().toLocaleString() + ": TurnTracker - Loading complete.");
-});
+new TurnTracker().register();

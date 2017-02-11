@@ -3,8 +3,8 @@
 
 // VERSION INFO
 var PowerCards_Author = "SkyCaptainXIII";
-var PowerCards_Version = "3.2.23";
-var PowerCards_LastUpdated = 1484577932;
+var PowerCards_Version = "3.3.0";
+var PowerCards_LastUpdated = 1486824132;
 
 // FUNCTION DECLARATIONS
 var PowerCard = PowerCard || {};
@@ -20,6 +20,7 @@ var getPowerCardFormats = getPowerCardFormats || {};
 var getPowerCardStatusList = getPowerCardStatusList || {};
 var getTargetInfo = getTargetInfo || {};
 var statusSymbol = statusSymbol || {};
+var safeSendChat = safeSendChat || {};
 
 // INLINE ROLL COLORS
 var INLINE_ROLL_DEFAULT = " background-color: #FFFEA2; border-color: #87850A; color: #000000;";
@@ -46,7 +47,7 @@ on("chat:message", function (msg) {
 on("ready", function () {
     getPowerCardFormats();
     log("-=> PowerCards v" + PowerCards_Version + " <=-  [" + (new Date(PowerCards_LastUpdated * 1000)) + "]");
-    // log (Date.now().toString().substr(0, 10));
+    //log (Date.now().toString().substr(0, 10));
 });
 
 on("change:handout", function () {
@@ -145,150 +146,6 @@ PowerCard.Process = function (msg, player_obj) {
             }
         }
     });
-
-    // 5eSkills Tag -- ONLY WORKS WITH THE COMMUNITY SHEET -- NOT THE OGL & NOT THE SHAPED
-    if (PowerCard.Skills5e && PowerCard.charid) {
-        var CharacterName = getAttrByName(PowerCard.charid, "character_name");
-        var SkillList = "";
-        var Proficiency = 1 + Math.ceil((0
-            + parseInt(getAttrByName(PowerCard.charid, "barbarian_level"))
-            + parseInt(getAttrByName(PowerCard.charid, "bard_level"))
-            + parseInt(getAttrByName(PowerCard.charid, "cleric_level"))
-            + parseInt(getAttrByName(PowerCard.charid, "druid_level"))
-            + parseInt(getAttrByName(PowerCard.charid, "fighter_level"))
-            + parseInt(getAttrByName(PowerCard.charid, "monk_level"))
-            + parseInt(getAttrByName(PowerCard.charid, "paladin_level"))
-            + parseInt(getAttrByName(PowerCard.charid, "ranger_level"))
-            + parseInt(getAttrByName(PowerCard.charid, "rogue_level"))
-            + parseInt(getAttrByName(PowerCard.charid, "sorcerer_level"))
-            + parseInt(getAttrByName(PowerCard.charid, "warlock_level"))
-            + parseInt(getAttrByName(PowerCard.charid, "wizard_level"))) / 4);
-        var Expertise = Proficiency * 2;
-        if (PowerCard.Skills5e === "Strength") {
-            // ATHLETICS
-            var Athletics = parseInt(getAttrByName(PowerCard.charid, "athletics_bonus"));
-            if (getAttrByName(PowerCard.charid, "athletics_prof_exp") === "@{PB}") Athletics += Proficiency;
-            if (getAttrByName(PowerCard.charid, "athletics_prof_exp") === "(2*@{PB})") Athletics += Expertise;
-            if (Athletics >= 0) Athletics = "+" + Athletics;
-
-            SkillList += "Athletics (" + Athletics + ")";
-        }
-        if (PowerCard.Skills5e === "Dexterity") {
-            // ACROBATICS
-            var Acrobatics = parseInt(getAttrByName(PowerCard.charid, "acrobatics_bonus"));
-            if (getAttrByName(PowerCard.charid, "acrobatics_prof_exp") === "@{PB}") Acrobatics += Proficiency;
-            if (getAttrByName(PowerCard.charid, "acrobatics_prof_exp") === "(2*@{PB})") Acrobatics += Expertise;
-            if (Acrobatics >= 0) Acrobatics = "+" + Acrobatics;
-
-            // ACROBATICS
-            var SleightOfHand = parseInt(getAttrByName(PowerCard.charid, "sleightofhand_bonus"));
-            if (getAttrByName(PowerCard.charid, "sleightofhand_prof_exp") === "@{PB}") SleightOfHand += Proficiency;
-            if (getAttrByName(PowerCard.charid, "sleightofhand_prof_exp") === "(2*@{PB})") SleightOfHand += Expertise;
-            if (SleightOfHand >= 0) SleightOfHand = "+" + SleightOfHand;
-
-            // ACROBATICS
-            var Stealth = parseInt(getAttrByName(PowerCard.charid, "stealth_bonus"));
-            if (getAttrByName(PowerCard.charid, "stealth_prof_exp") === "@{PB}") Stealth += Proficiency;
-            if (getAttrByName(PowerCard.charid, "stealth_prof_exp") === "(2*@{PB})") Stealth += Expertise;
-            if (Stealth >= 0) Stealth = "+" + Stealth;
-
-            SkillList += "Acrobatics (" + Acrobatics + "), Sleight of Hand (" + SleightOfHand + "), Stealth (" + Stealth + ")";
-        }
-        if (PowerCard.Skills5e === "Intelligence") {
-            // ARCANA
-            var Arcana = parseInt(getAttrByName(PowerCard.charid, "arcana_bonus"));
-            if (getAttrByName(PowerCard.charid, "arcana_prof_exp") === "@{PB}") Arcana += Proficiency;
-            if (getAttrByName(PowerCard.charid, "arcana_prof_exp") === "(2*@{PB})") Arcana += Expertise;
-            if (Arcana >= 0) Arcana = "+" + Arcana;
-
-            // HISTORY
-            var History = parseInt(getAttrByName(PowerCard.charid, "history_bonus"));
-            if (getAttrByName(PowerCard.charid, "history_prof_exp") === "@{PB}") History += Proficiency;
-            if (getAttrByName(PowerCard.charid, "history_prof_exp") === "(2*@{PB})") History += Expertise;
-            if (History >= 0) History = "+" + History;
-
-            // INVESTIGATION
-            var Investigation = parseInt(getAttrByName(PowerCard.charid, "investigation_bonus"));
-            if (getAttrByName(PowerCard.charid, "investigation_prof_exp") === "@{PB}") Investigation += Proficiency;
-            if (getAttrByName(PowerCard.charid, "investigation_prof_exp") === "(2*@{PB})") Investigation += Expertise;
-            if (Investigation >= 0) Investigation = "+" + Investigation;
-
-            // NATURE
-            var Nature = parseInt(getAttrByName(PowerCard.charid, "nature_bonus"));
-            if (getAttrByName(PowerCard.charid, "nature_prof_exp") === "@{PB}") Nature += Proficiency;
-            if (getAttrByName(PowerCard.charid, "nature_prof_exp") === "(2*@{PB})") Nature += Expertise;
-            if (Nature >= 0) Nature = "+" + Nature;
-
-            // RELIGION
-            var Religion = parseInt(getAttrByName(PowerCard.charid, "religion_bonus"));
-            if (getAttrByName(PowerCard.charid, "religion_prof_exp") === "@{PB}") Religion += Proficiency;
-            if (getAttrByName(PowerCard.charid, "religion_prof_exp") === "(2*@{PB})") Religion += Expertise;
-            if (Religion >= 0) Religion = "+" + Religion;
-
-            SkillList += "Arcana (" + Arcana + "), History (" + History + "), Investigation (" + Investigation + "), Nature (" + Nature + "), Religion (" + Religion + ")";
-        }
-        if (PowerCard.Skills5e === "Wisdom") {
-            // ANIMAL HANDLING
-            var AnimalHandling = parseInt(getAttrByName(PowerCard.charid, "animalhandling_bonus"));
-            if (getAttrByName(PowerCard.charid, "animalhandling_prof_exp") === "@{PB}") AnimalHandling += Proficiency;
-            if (getAttrByName(PowerCard.charid, "animalhandling_prof_exp") === "(2*@{PB})") AnimalHandling += Expertise;
-            if (AnimalHandling >= 0) AnimalHandling = "+" + AnimalHandling;
-
-            // INSIGHT
-            var Insight = parseInt(getAttrByName(PowerCard.charid, "insight_bonus"));
-            if (getAttrByName(PowerCard.charid, "insight_prof_exp") === "@{PB}") Insight += Proficiency;
-            if (getAttrByName(PowerCard.charid, "insight_prof_exp") === "(2*@{PB})") Insight += Expertise;
-            if (Insight >= 0) Insight = "+" + Insight;
-
-            // MEDICINE
-            var Medicine = parseInt(getAttrByName(PowerCard.charid, "medicine_bonus"));
-            if (getAttrByName(PowerCard.charid, "medicine_prof_exp") === "@{PB}") Medicine += Proficiency;
-            if (getAttrByName(PowerCard.charid, "medicine_prof_exp") === "(2*@{PB})") Medicine += Expertise;
-            if (Medicine >= 0) Medicine = "+" + Medicine;
-
-            // PERCEPTION
-            var Perception = parseInt(getAttrByName(PowerCard.charid, "perception_bonus"));
-            if (getAttrByName(PowerCard.charid, "perception_prof_exp") === "@{PB}") Perception += Proficiency;
-            if (getAttrByName(PowerCard.charid, "perception_prof_exp") === "(2*@{PB})") Perception += Expertise;
-            if (Perception >= 0) Perception = "+" + Perception;
-
-            // SURVIVAL
-            var Survival = parseInt(getAttrByName(PowerCard.charid, "survival_bonus"));
-            if (getAttrByName(PowerCard.charid, "survival_prof_exp") === "@{PB}") Survival += Proficiency;
-            if (getAttrByName(PowerCard.charid, "survival_prof_exp") === "(2*@{PB})") Survival += Expertise;
-            if (Survival >= 0) Survival = "+" + Survival;
-
-            SkillList += "Animal Handling (" + AnimalHandling + "), Insight (" + Insight + "), Medicine (" + Medicine + "), Perception (" + Perception + "), Survival (" + Survival + ")";
-        }
-        if (PowerCard.Skills5e === "Charisma") {
-            // DECEPTION
-            var Deception = parseInt(getAttrByName(PowerCard.charid, "deception_bonus"));
-            if (getAttrByName(PowerCard.charid, "deception_prof_exp") === "@{PB}") Deception += Proficiency;
-            if (getAttrByName(PowerCard.charid, "deception_prof_exp") === "(2*@{PB})") Deception += Expertise;
-            if (Deception >= 0) Deception = "+" + Deception;
-
-            // INTIMIDATION
-            var Intimidation = parseInt(getAttrByName(PowerCard.charid, "intimidation_bonus"));
-            if (getAttrByName(PowerCard.charid, "intimidation_prof_exp") === "@{PB}") Intimidation += Proficiency;
-            if (getAttrByName(PowerCard.charid, "intimidation_prof_exp") === "(2*@{PB})") Intimidation += Expertise;
-            if (Intimidation >= 0) Intimidation = "+" + Intimidation;
-
-            // PERFORMANCE
-            var Performance = parseInt(getAttrByName(PowerCard.charid, "performance_bonus"));
-            if (getAttrByName(PowerCard.charid, "performance_prof_exp") === "@{PB}") Performance += Proficiency;
-            if (getAttrByName(PowerCard.charid, "performance_prof_exp") === "(2*@{PB})") Performance += Expertise;
-            if (Performance >= 0) Performance = "+" + Performance;
-
-            // PERSUASION
-            var Persuasion = parseInt(getAttrByName(PowerCard.charid, "persuasion_bonus"));
-            if (getAttrByName(PowerCard.charid, "persuasion_prof_exp") === "@{PB}") Persuasion += Proficiency;
-            if (getAttrByName(PowerCard.charid, "persuasion_prof_exp") === "(2*@{PB})") Persuasion += Expertise;
-            if (Persuasion >= 0) Persuasion = "+" + Persuasion;
-
-            SkillList += "Deception (" + Deception + "), Intimidation (" + Intimidation + "), Performance (" + Performance + "), Persuasion (" + Persuasion + ")";
-        }
-        if (_.isEmpty(SkillList) === false) PowerCard["Skills:"] = SkillList;
-    }
 
     // PROCESS INLINE ROLLS...
     safeSendChat("", JSON.stringify(PowerCard), function (x) {
@@ -565,15 +422,16 @@ PowerCard.Process = function (msg, player_obj) {
         });
 
         // REMOVE IGNORED TAGS...
-        var IgnoredTags = ["charid", "tokenid", "emote", "leftsub", "rightsub", "name", "txcolor", "bgcolor", "erowbg", "erowtx", "orowbg", "orowtx", "whisper", "format", "title", "target_list", "titlefont", "subtitlefont", "bodyfont", "corners", "titlefontsize", "subtitlefontsize", "bodyfontsize", "border", "boxshadow", "titlefontvariant", "subtitlefontvariant", "Skills5e"];
+        var IgnoredTags = ["charid", "tokenid", "emote", "leftsub", "rightsub", "name", "txcolor", "bgcolor", "erowbg", "erowtx", "orowbg", "orowtx", "whisper", "format", "title", "target_list", "titlefont", "subtitlefont", "bodyfont", "corners", "titlefontsize", "subtitlefontsize", "bodyfontsize", "border", "boxshadow", "titlefontvariant", "subtitlefontvariant"];
         IgnoredTags.forEach(function (Tag) {
             if (Keys.indexOf(Tag) !== -1) Keys.splice(Keys.indexOf(Tag), 1);
         });
 
-        // REMOVE HIDDEN TAGS...
+        // PLAY SOUNDFX & THEN REMOVE HIDDEN & SOUNDFX TAGS...
         var NewKeys = [];
         Keys.forEach(function (Tag) {
-            if (Tag.charAt(0) !== "$" && Tag !== "hroll" && Tag !== "hrolls") NewKeys.push(Tag);
+            if (Tag.substring(0, 7) == "soundfx") sendChat(msg.playerid, "!roll20AM " + PowerCard[Tag].replace(/\_/g, "--"));
+            if (Tag.charAt(0) !== "$" && Tag !== "hroll" && Tag !== "hrolls" && Tag.substring(0, 7) !== "soundfx") NewKeys.push(Tag);
         });
         Keys = NewKeys;
 
@@ -663,16 +521,6 @@ PowerCard.Process = function (msg, player_obj) {
         }
     });
 };
-
-function safeSendChat(speakingAs, message, callback) {
-    try {
-        sendChat(speakingAs, message, callback);
-    }
-    catch (e) {
-        log(e);
-        sendChat("PowerCards", JSON.stringify(e));
-    }
-}
 
 /* FUNCTIONS /////////////////////////////////////////////////////////////////// */
 function buildInline(inlineroll, TrackerID, who) {
@@ -964,7 +812,7 @@ function doInlineFormatting(content, ALLOW_URLS, ALLOW_HIDDEN_URLS, Rolls) {
                 case "ones":
                     content = content.replace(RollID[0], Rolls["$" + RollID[1].split(".")[0]].ones);
                 default:
-                    content = content.replace(RollID[0], Rolls["$" + RollID[1].split(".")[0]].base);
+                    content = content.replace(RollID[0], Rolls["$" + RollID[1].split(".")[0]].total);
             }
         } else {
             content = content.replace(RollID[0], "Roll ID Not Found");
@@ -1159,4 +1007,13 @@ function getTargetInfo(content, TargetList) {
         }
     });
 };
+
+function safeSendChat(speakingAs, message, callback) {
+    try {
+        sendChat(speakingAs, message, callback);
+    }
+    catch (e) {
+        sendChat("PowerCards", JSON.stringify(e));
+    }
+}
 /* END FUNCTIONS /////////////////////////////////////////////////////////////// */

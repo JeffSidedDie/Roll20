@@ -1,50 +1,82 @@
-on("ready", () => {
-	on("chat:message", (msg) => {
-		// silently ignore if message isn't for this
-		if (msg.type !== "api") { return; }
-		if (msg.content !== "!timer") { return; }
+import { Roll20ApiScript } from "./roll20ApiScript";
 
-		sendChat("Timer", "/w gm Timer started.");
+class TurnTimer extends Roll20ApiScript {
+	private time = 0;
+	private text: Text;
+	private interval: NodeJS.Timer;
+	private isActive = false;
 
-		const textObjects = findObjs({
-			_type: "text",
-		});
-		_.each(textObjects, (obj) => {
-			log("Deleting: " + obj);
-			obj.remove();
-		});
+	constructor() {
+		super("Turn Timer", "timer");
+	}
 
-		const currentPageId = Campaign().get("playerpageid");
+	public start() {
+		if (this.isActive) { return; }
 
-		let time = 10;
-		const timerText = createObj("text", {
-			_pageid: currentPageId,
-			color: "rgb(255,0,0)",
-			font_family: "Candal",
-			font_size: 100,
-			height: 100,
-			layer: "objects",
-			left: 100,
-			text: time.toString(),
-			top: 100,
-			width: 100,
-		});
-
-		if (!timerText) {
-			sendChat("Timer", "/w gm Could not create timer text.");
-		} else {
+		if (!this.text) {
+			const currentPageId = Campaign().get("playerpageid");
+			this.text = createObj("text", {
+				_pageid: currentPageId,
+				color: "rgb(0,255,0)",
+				font_family: "Candal",
+				font_size: 100,
+				height: 100,
+				layer: "objects",
+				left: 100,
+				top: 100,
+				width: 100,
+			});
 			log("Timer text created");
 		}
 
-		const timerInterval = setInterval(() => {
-			time--;
-			timerText.set("text", time.toString());
+		this.time = 10;
+		this.text.set("text", this.time.toString());
+		this.interval = setInterval(() => {
+			this.time--;
+			this.text.set("text", this.time.toString());
 
-			if (time === 0) {
-				clearInterval(timerInterval);
-				sendChat("Timer", "/w gm Timer stopped.");
+			if (this.time === 6) {
+				this.text.set("color", "rgb(255,255,0)");
+			} else if (this.time === 3) {
+				this.text.set("color", "rgb(255,0,0)");
+			}
+
+			if (this.time === 0) {
+				clearInterval(this.interval);
 			}
 		}, 1000);
-	});
-	log(new Date().toLocaleString() + ": Timer - Loading complete.");
-});
+		this.isActive = true;
+	}
+
+	public stop() {
+		if (this.interval) {
+			clearInterval(this.interval);
+		}
+		if (this.text) {
+			this.text.set("text", "");
+		}
+		this.time = 0;
+		this.isActive = false;
+	}
+
+	protected apiChatMessageHandler(message: ApiChatEventData) {
+		const commands = message.content.split(" ");
+		if (commands.length !== 2) {
+			this.sendChatFromScript("No command given.");
+			return;
+		}
+		switch (commands[1]) {
+			case "start":
+				this.start();
+				break;
+			case "stop":
+				this.stop();
+				break;
+			default:
+				this.sendChatFromScript("Unknown command.");
+				break;
+		}
+	}
+}
+
+new TurnTimer().register();

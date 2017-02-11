@@ -188,7 +188,7 @@ class TurnTracker extends Roll20ApiScript {
 						try {
 							this.processTurnOrder(currentTurnOrder);
 						} catch (e) {
-							this.sendChatFromScript(e);
+							this.sendChatFromScript((e as Error).message);
 							currentCampaign.set("turnorder", previousCampaign.turnorder);
 						}
 					}

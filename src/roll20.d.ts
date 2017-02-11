@@ -7,7 +7,7 @@ declare var _: _.UnderscoreStatic;
  */
 declare var state: any;
 
-type ObjectType = "graphic" | "text" | "path" | "character" | "ability" | "attribute" | "handout" | "rollabletable" | "tableitem" | "macro" | "campaign";
+type ObjectType = "graphic" | "text" | "path" | "character" | "ability" | "attribute" | "handout" | "rollabletable" | "tableitem" | "macro" | "campaign" | "player";
 type RollType = "V" | "G" | "M" | "R" | "C";
 type RollResultType = "sum" | "success";
 type Layer = "gmlayer" | "objects" | "map" | "walls";
@@ -95,6 +95,23 @@ interface CampaignMutableSynchronousGetProperties {
 }
 
 interface Campaign extends Roll20ObjectBase<CampaignImmutableSynchronousGetProperties, never, CampaignMutableSynchronousGetProperties, never> { }
+
+interface PlayerImmutableSynchronousGetProperties extends Roll20ObjectBaseProperties {
+	readonly _type: "player";
+	readonly _d20userid: string;
+	readonly _displayname: string;
+	readonly _online: boolean;
+	readonly _lastpage: string;
+	readonly _macrobar: string;
+}
+
+interface PlayerMutableSynchronousGetProperties {
+	speakingas: string;
+	color: string;
+	showmacrobar: boolean;
+}
+
+interface Player extends Roll20ObjectBase<PlayerImmutableSynchronousGetProperties, never, PlayerMutableSynchronousGetProperties, never> { }
 
 interface TextImmutableSynchronousGetProperties extends Roll20ObjectBaseProperties {
 	readonly _type: "text";
@@ -398,6 +415,7 @@ declare function getObj(type: "graphic", id: string): Graphic | undefined;
 declare function getObj(type: "character", id: string): Character | undefined;
 declare function getObj(type: "attribute", id: string): Attribute | undefined;
 declare function getObj(type: "ability", id: string): Ability | undefined;
+declare function getObj(type: "player", id: string): Player | undefined;
 
 /**
  * Gets the value of an attribute, using the default value from the character sheet if the attribute is not present. value_type is an optional parameter, which you can use to specify "current" or "max".

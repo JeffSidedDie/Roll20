@@ -5,6 +5,9 @@ class TurnTimer extends Roll20ApiScript {
 	private text: Text;
 	private interval: NodeJS.Timer;
 	private isActive = false;
+	private isRegistered = false;
+	private currentPlayerName: string;
+	private nextPlayerName: string;
 
 	constructor() {
 		super("Turn Timer", "timer");
@@ -72,6 +75,15 @@ class TurnTimer extends Roll20ApiScript {
 		}
 		switch (commands[1]) {
 			case "start":
+				if (!this.isRegistered) {
+					on("change:campaign:turnorder", (currentCampaign) => {
+						if (this.isActive) {
+							this.parseTurnOrderAndSetCurrentAndNextPlayerNames(currentCampaign.get("turnorder"));
+						}
+					});
+					this.isRegistered = true;
+				}
+				this.parseTurnOrderAndSetCurrentAndNextPlayerNames(Campaign().get("turnorder"));
 				this.start();
 				break;
 			case "stop":
@@ -81,6 +93,38 @@ class TurnTimer extends Roll20ApiScript {
 				this.sendChatFromScript("Unknown command.");
 				break;
 		}
+	}
+
+	private parseTurnOrderAndSetCurrentAndNextPlayerNames(currentTurnOrderString: string): void {
+		const currentTurnOrder = JSON.parse(currentTurnOrderString || "[]") as TurnOrdering[];
+		_.some(currentTurnOrder, (currentCombatant, index) => {
+			const token = getObj("graphic", currentCombatant.id);
+			if (token) {
+				const character = getObj("character", token.get("represents"));
+				if (character) {
+					const player = getObj("player", character.get("controlledby"));
+					if (player) {
+						const name = player.get("_displayname");
+						if (index === 0) {
+							if (this.currentPlayerName !== name) {
+								this.currentPlayerName = name;
+								log("Current player: " + name);
+							}
+						} else {
+							if (this.nextPlayerName !== name) {
+								this.nextPlayerName = name;
+								log("Next player: " + name);
+							}
+							return true;
+						}
+					} else if (index === 0 && this.currentPlayerName !== "") {
+						this.currentPlayerName = "";
+						log("No current player.");
+					}
+				}
+			}
+			return false;
+		});
 	}
 }
 

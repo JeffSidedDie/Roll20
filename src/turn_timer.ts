@@ -27,24 +27,26 @@ class TurnTimer extends Roll20ApiScript {
 		}
 		this.stop();
 
-		this.text.set("text", this.time.toString());
-		this.interval = setInterval(() => {
-			this.time--;
+		if (this.currentPlayerName) {
 			this.text.set("text", this.time.toString());
+			this.interval = setInterval(() => {
+				this.time--;
+				this.text.set("text", this.time.toString());
 
-			if (this.time === this.firstWarningTime) {
-				this.text.set("color", this.firstWarningTextColor);
-				this.sendChatFromScript("/w \"" + this.nextPlayerName + "\" First warning! You have " + this.time + " seconds left.");
-			} else if (this.time === this.secondWarningTime) {
-				this.text.set("color", this.secondWarningTextColor);
-				this.sendChatFromScript("/w \"" + this.nextPlayerName + "\" Second warning! You have " + this.time + " seconds left.");
-			}
+				if (this.time === this.firstWarningTime) {
+					this.text.set("color", this.firstWarningTextColor);
+					this.sendChatFromScript("/w \"" + this.nextPlayerName + "\" First warning! You have " + this.time + " seconds left.");
+				} else if (this.time === this.secondWarningTime) {
+					this.text.set("color", this.secondWarningTextColor);
+					this.sendChatFromScript("/w \"" + this.nextPlayerName + "\" Second warning! You have " + this.time + " seconds left.");
+				}
 
-			if (this.time === 0) {
-				clearInterval(this.interval);
-				this.sendChatFromScript(this.currentPlayerName + "'s turn is up!");
-			}
-		}, 1000);
+				if (this.time === 0) {
+					clearInterval(this.interval);
+					this.sendChatFromScript(this.currentPlayerName + "'s turn is up!");
+				}
+			}, 1000);
+		}
 	}
 
 	public reset() {
@@ -102,6 +104,8 @@ class TurnTimer extends Roll20ApiScript {
 		this.isActive = false;
 		this.stop();
 		this.hide();
+		this.currentPlayerName = "";
+		this.nextPlayerName = "";
 	}
 
 	protected apiChatMessageHandler(message: ApiChatEventData) {

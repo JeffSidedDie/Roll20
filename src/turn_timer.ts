@@ -1,6 +1,13 @@
 import { Roll20ApiScript } from "./roll20ApiScript";
 
 class TurnTimer extends Roll20ApiScript {
+	private readonly maxTime = 10;
+	private readonly firstWarningTime = 6;
+	private readonly secondWarningTime = 3;
+	private readonly baseTextColor = "rgb(0,255,0)";
+	private readonly firstWarningTextColor = "rgb(255,255,0)";
+	private readonly secondWarningTextColor = "rgb(255,0,0)";
+
 	private time = 0;
 	private text: Text;
 	private interval: NodeJS.Timer;
@@ -14,13 +21,65 @@ class TurnTimer extends Roll20ApiScript {
 	}
 
 	public start() {
-		if (this.isActive) { return; }
+		if (!this.isActive) {
+			this.activate();
+			this.reset();
+		}
+		this.stop();
 
+		this.text.set("text", this.time.toString());
+		this.interval = setInterval(() => {
+			this.time--;
+			this.text.set("text", this.time.toString());
+
+			if (this.time === this.firstWarningTime) {
+				this.text.set("color", this.firstWarningTextColor);
+				this.sendChatFromScript("/w \"" + this.nextPlayerName + "\" First warning! You have " + this.time + " seconds left.");
+			} else if (this.time === this.secondWarningTime) {
+				this.text.set("color", this.secondWarningTextColor);
+				this.sendChatFromScript("/w \"" + this.nextPlayerName + "\" Second warning! You have " + this.time + " seconds left.");
+			}
+
+			if (this.time === 0) {
+				clearInterval(this.interval);
+				this.sendChatFromScript(this.currentPlayerName + "'s turn is up!");
+			}
+		}, 1000);
+	}
+
+	public reset() {
+		this.time = this.maxTime;
+		if (this.text) {
+			this.text.set("color", this.baseTextColor);
+		}
+	}
+
+	public stop() {
+		if (this.interval) {
+			clearInterval(this.interval);
+		}
+	}
+
+	public hide() {
+		if (this.text) {
+			this.text.set("text", "");
+		}
+	}
+
+	public activate() {
+		if (!this.isRegistered) {
+			on("change:campaign:turnorder", (currentCampaign) => {
+				if (this.isActive) {
+					this.parseTurnOrderAndSetCurrentAndNextPlayerNames(currentCampaign.get("turnorder"));
+				}
+			});
+			this.isRegistered = true;
+		}
 		if (!this.text) {
 			const currentPageId = Campaign().get("playerpageid");
 			const text = createObj("text", {
 				_pageid: currentPageId,
-				color: "rgb(0,255,0)",
+				color: this.baseTextColor,
 				font_family: "Candal",
 				font_size: 100,
 				height: 100,
@@ -36,35 +95,13 @@ class TurnTimer extends Roll20ApiScript {
 				log("Timer text created");
 			}
 		}
-
-		this.time = 10;
-		this.text.set("text", this.time.toString());
-		this.interval = setInterval(() => {
-			this.time--;
-			this.text.set("text", this.time.toString());
-
-			if (this.time === 6) {
-				this.text.set("color", "rgb(255,255,0)");
-			} else if (this.time === 3) {
-				this.text.set("color", "rgb(255,0,0)");
-			}
-
-			if (this.time === 0) {
-				clearInterval(this.interval);
-			}
-		}, 1000);
 		this.isActive = true;
 	}
 
-	public stop() {
-		if (this.interval) {
-			clearInterval(this.interval);
-		}
-		if (this.text) {
-			this.text.set("text", "");
-		}
-		this.time = 0;
+	public deactivate() {
 		this.isActive = false;
+		this.stop();
+		this.hide();
 	}
 
 	protected apiChatMessageHandler(message: ApiChatEventData) {
@@ -74,20 +111,21 @@ class TurnTimer extends Roll20ApiScript {
 			return;
 		}
 		switch (commands[1]) {
+			case "on":
+				this.activate();
+				break;
 			case "start":
-				if (!this.isRegistered) {
-					on("change:campaign:turnorder", (currentCampaign) => {
-						if (this.isActive) {
-							this.parseTurnOrderAndSetCurrentAndNextPlayerNames(currentCampaign.get("turnorder"));
-						}
-					});
-					this.isRegistered = true;
-				}
 				this.parseTurnOrderAndSetCurrentAndNextPlayerNames(Campaign().get("turnorder"));
 				this.start();
 				break;
 			case "stop":
 				this.stop();
+				break;
+			case "reset":
+				this.reset();
+				break;
+			case "off":
+				this.deactivate();
 				break;
 			default:
 				this.sendChatFromScript("Unknown command.");
@@ -108,17 +146,23 @@ class TurnTimer extends Roll20ApiScript {
 						if (index === 0) {
 							if (this.currentPlayerName !== name) {
 								this.currentPlayerName = name;
+								this.reset();
+								this.start();
+								this.sendChatFromScript("/w \"" + this.nextPlayerName + "\" It's your turn! You have " + this.time + " seconds.");
 								log("Current player: " + name);
 							}
 						} else {
 							if (this.nextPlayerName !== name) {
 								this.nextPlayerName = name;
+								this.sendChatFromScript("/w \"" + this.nextPlayerName + "\" You're up next, get ready!");
 								log("Next player: " + name);
 							}
 							return true;
 						}
 					} else if (index === 0 && this.currentPlayerName !== "") {
 						this.currentPlayerName = "";
+						this.stop();
+						this.hide();
 						log("No current player.");
 					}
 				}

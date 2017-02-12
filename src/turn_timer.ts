@@ -1,9 +1,9 @@
 import { Roll20ApiScript } from "./roll20ApiScript";
 
 class TurnTimer extends Roll20ApiScript {
-	private readonly maxTime = 10;
-	private readonly firstWarningTime = 6;
-	private readonly secondWarningTime = 3;
+	private readonly maxTime = 90;
+	private readonly firstWarningTime = 60;
+	private readonly secondWarningTime = 30;
 	private readonly baseTextColor = "rgb(0,255,0)";
 	private readonly firstWarningTextColor = "rgb(255,255,0)";
 	private readonly secondWarningTextColor = "rgb(255,0,0)";
@@ -35,15 +35,15 @@ class TurnTimer extends Roll20ApiScript {
 
 				if (this.time === this.firstWarningTime) {
 					this.text.set("color", this.firstWarningTextColor);
-					this.sendChatFromScript("/w \"" + this.nextPlayerName + "\" First warning! You have " + this.time + " seconds left.");
+					this.sendChatFromScript("/w \"" + this.currentPlayerName + "\" First warning! You have " + this.time + " seconds left.");
 				} else if (this.time === this.secondWarningTime) {
 					this.text.set("color", this.secondWarningTextColor);
-					this.sendChatFromScript("/w \"" + this.nextPlayerName + "\" Second warning! You have " + this.time + " seconds left.");
+					this.sendChatFromScript("/w \"" + this.currentPlayerName + "\" Second warning! You have " + this.time + " seconds left.");
 				}
 
 				if (this.time === 0) {
 					clearInterval(this.interval);
-					this.sendChatFromScript(this.currentPlayerName + "'s turn is up!");
+					this.sendChatFromScript("The timer has expired for " + this.currentPlayerName + "'s turn!");
 				}
 			}, 1000);
 		}

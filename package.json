@@ -9,11 +9,9 @@
   },
   "private": true,
   "dependencies": {
-    "html-entities": "^1.2.0",
     "xmldoc": "^0.5.1"
   },
   "devDependencies": {
-    "@types/html-entities": "^1.2.15",
     "@types/node": "^6.0.63",
     "@types/underscore": "^1.7.36",
     "tslint": "^4.4.2",

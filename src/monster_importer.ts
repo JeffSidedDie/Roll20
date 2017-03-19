@@ -1,4 +1,4 @@
-﻿import { XmlDocument } from "xmldoc";
+﻿import { XmlDocument, XmlElement } from "xmldoc";
 import { Roll20ApiScript } from "./roll20ApiScript";
 
 class MonsterImporter extends Roll20ApiScript {
@@ -80,84 +80,105 @@ class MonsterImporter extends Roll20ApiScript {
 		});
 
 		// Powers
-		xml.descendantWithPath("Powers").eachChild((child) => {
+		xml.descendantWithPath("Powers").eachChild((powerNode) => {
 
-			let power = "!power {{\n";
+			let powerString = "!power {{\n";
 
-			function appendTag(tagName: string, value: string) {
+			function appendTag(tagName: string, value: string, appendColon: boolean = true) {
 				if (value) {
-					power += "--" + tagName + "|" + value + "\n";
+					powerString += "--" + tagName + (appendColon ? ":" : "") + "|" + value + "\n";
 				}
 			}
 
-			const name = child.valueWithPath("Name");
-			appendTag("name", name);
+			function appendFailedSaveAftereffectSustainNodes(attackEntryNode: XmlElement) {
+				attackEntryNode.childNamed("FailedSavingThrows").eachChild((failedSaveNode) => {
+					appendTag(failedSaveNode.valueWithPath("Name"), failedSaveNode.valueWithPath("Description"));
+				});
 
-			if (child.name === "MonsterPower") {
-				const usage = child.valueWithPath("Usage");
-				appendTag("format", (usage || "").toLowerCase());
+				appendTag("Aftereffect", attackEntryNode.valueWithPath("Aftereffects.MonsterAttackEntry.Description"));
 
-				const action = child.valueWithPath("Action");
-				appendTag("leftsub", action ? action + " Action" : "");
-				const usageDetails = child.valueWithPath("UsageDetails");
-				appendTag("rightsub", usage + (usageDetails ? " " + usageDetails : ""));
-
-				appendTag("Requirements", child.valueWithPath("Requirements"));
-				appendTag("Trigger", child.valueWithPath("Trigger"));
-
-				const attack = child.descendantWithPath("Attacks.MonsterAttack");
-				if (attack) {
-					const range = attack.valueWithPath("Range");
-					appendTag("Range", range);
-					appendTag("Target(s)", attack.valueWithPath("Targets"));
-
-					const rangeLower = (range || "").toLowerCase();
-					const multipleAttacks = rangeLower.indexOf("burst") !== -1 || rangeLower.indexOf("blast") !== -1;
-					if (multipleAttacks) {
-						let targetList = "";
-						_.times(6, (n) => targetList += ((n > 0 ? " | " : "") + "@{target|Target" + (n + 1) + "|token_id}"));
-						appendTag("target_list", targetList);
-					}
-
-					const attackBonusNode = attack.descendantWithPath("AttackBonuses.MonsterPowerAttackNumber");
-					if (attackBonusNode) {
-						const attackBonus = attackBonusNode.attr.FinalValue;
-						const defense = attackBonusNode.valueWithPath("Defense.ReferencedObject.DefenseName");
-						if (multipleAttacks) {
-							appendTag("Attack#?{Number of targets|1}", "[[ 1d20+" + attackBonus + " ]] vs %%%" + attributeMap[defense] + "%% (%%character_name%%'s " + defense + ")");
-						} else {
-							appendTag("Attack", "[[ 1d20+" + attackBonus + " ]] vs [[ @{target|" + attributeMap[defense] + "} ]] (@{target|character_name}'s " + defense + ")");
-						}
-
-						const hitNode = attack.childNamed("Hit");
-						const damage = hitNode.valueWithPath("Damage.Expression");
-						const onHit = hitNode.valueWithPath("Description");
-
-						let hitLine = "";
-						if (damage) {
-							hitLine += "[[ " + damage + " ]] ";
-						}
-						if (onHit) {
-							hitLine += onHit;
-						}
-						appendTag("Hit", hitLine);
-						appendTag("Miss", attack.valueWithPath("Miss.Description"));
-					}
-
-					appendTag("Effect", attack.valueWithPath("Effect.Description"));
+				const sustainNode = attackEntryNode.descendantWithPath("Sustains.MonsterSustainEffect");
+				if (sustainNode) {
+					appendTag("Sustain " + sustainNode.valueWithPath("Action"), sustainNode.valueWithPath("Description"));
 				}
-			} else if (child.name === "MonsterTrait") {
-				const auraSize = child.valueWithPath("Range@FinalValue");
+			}
+
+			function appendAttackNodes(attackNode: XmlElement) {
+				// const description = attackNode.valueWithPath("Description");
+
+				const range = attackNode.valueWithPath("Range");
+				appendTag("Range", range);
+				appendTag("Targets", attackNode.valueWithPath("Targets"));
+
+				const rangeLower = (range || "").toLowerCase();
+				const multipleAttacks = rangeLower.indexOf("burst") !== -1 || rangeLower.indexOf("blast") !== -1;
+				if (multipleAttacks) {
+					let targetList = "";
+					_.times(6, (n) => targetList += ((n > 0 ? " | " : "") + "@{target|Target" + (n + 1) + "|token_id}"));
+					appendTag("target_list", targetList);
+				}
+
+				const attackBonusNode = attackNode.descendantWithPath("AttackBonuses.MonsterPowerAttackNumber");
+				if (attackBonusNode) {
+					const attackBonus = attackBonusNode.attr.FinalValue;
+					const defense = attackBonusNode.valueWithPath("Defense.ReferencedObject.DefenseName");
+					if (multipleAttacks) {
+						appendTag("Attack#?{Number of targets|1}", "[[ 1d20+" + attackBonus + " ]] vs %%%" + attributeMap[defense] + "%% (%%character_name%%'s " + defense + ")");
+					} else {
+						appendTag("Attack", "[[ 1d20+" + attackBonus + " ]] vs [[ @{target|" + attributeMap[defense] + "} ]] (@{target|character_name}'s " + defense + ")");
+					}
+
+					const hitNode = attackNode.childNamed("Hit");
+					const damage = hitNode.valueWithPath("Damage.Expression");
+					const onHit = hitNode.valueWithPath("Description");
+
+					let hitLine = "";
+					if (damage) {
+						hitLine += "[[ " + damage + " ]] ";
+					}
+					if (onHit) {
+						hitLine += onHit;
+					}
+
+					appendTag("Hit", hitLine);
+					appendFailedSaveAftereffectSustainNodes(hitNode);
+					appendTag("Miss", attackNode.valueWithPath("Miss.Description"));
+				}
+
+				const effectNode = attackNode.childNamed("Effect");
+				appendTag("Effect", effectNode.valueWithPath("Description"));
+				appendFailedSaveAftereffectSustainNodes(effectNode);
+				effectNode.descendantWithPath("Attacks").eachChild(appendAttackNodes);
+			}
+
+			const name = powerNode.valueWithPath("Name");
+			appendTag("name", name, false);
+
+			if (powerNode.name === "MonsterPower") {
+				const usage = powerNode.valueWithPath("Usage");
+				appendTag("format", (usage || "").toLowerCase(), false);
+
+				const action = powerNode.valueWithPath("Action");
+				appendTag("leftsub", action ? (action.indexOf("Immediate") > -1 || action.indexOf("Action") > -1 ? action : action + " Action") : "", false);
+				const usageDetails = powerNode.valueWithPath("UsageDetails");
+				appendTag("rightsub", usage + (usageDetails ? " " + usageDetails : ""), false);
+
+				appendTag("Requirements", powerNode.valueWithPath("Requirements"));
+				appendTag("Trigger", powerNode.valueWithPath("Trigger"));
+
+				powerNode.descendantWithPath("Attacks").eachChild(appendAttackNodes);
+			} else if (powerNode.name === "MonsterTrait") {
+				const auraSize = powerNode.valueWithPath("Range@FinalValue");
 				if (auraSize !== "0") {
-					const auraDetails = child.valueWithPath("Range.Details");
+					const auraDetails = powerNode.valueWithPath("Range.Details");
 					appendTag("leftsub", "Aura " + auraSize + (auraDetails ? " " + auraDetails : ""));
 				}
-				appendTag("Effect", child.valueWithPath("Details"));
+				appendTag("Effect", powerNode.valueWithPath("Details"));
 			}
 
-			power += "}}";
+			powerString += "}}";
 
-			this.AddPower(name, power, character.id);
+			this.AddPower(name, powerString, character.id);
 		});
 
 		// SET TOKEN VALUES

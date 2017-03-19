@@ -146,9 +146,13 @@ class MonsterImporter extends Roll20ApiScript {
 
 					appendTag("Effect", attack.valueWithPath("Effect.Description"));
 				}
-			} else {
-				const details = child.valueWithPath("Details");
-				appendTag("Effect", details);
+			} else if (child.name === "MonsterTrait") {
+				const auraSize = child.valueWithPath("Range@FinalValue");
+				if (auraSize !== "0") {
+					const auraDetails = child.valueWithPath("Range.Details");
+					appendTag("leftsub", "Aura " + auraSize + (auraDetails ? " " + auraDetails : ""));
+				}
+				appendTag("Effect", child.valueWithPath("Details"));
 			}
 
 			power += "}}";

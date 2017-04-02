@@ -84,9 +84,9 @@ class MonsterImporter extends Roll20ApiScript {
 
 			let powerString = "!power {{\n";
 
-			function appendTag(tagName: string, value: string, appendColon: boolean = true) {
+			function appendTag(tagName: string, value: string) {
 				if (value) {
-					powerString += "--" + tagName + (appendColon ? ":" : "") + "|" + value + "\n";
+					powerString += "--" + tagName + "|" + value + "\n";
 				}
 			}
 
@@ -152,16 +152,16 @@ class MonsterImporter extends Roll20ApiScript {
 			}
 
 			const name = powerNode.valueWithPath("Name");
-			appendTag("name", name, false);
+			appendTag("name", name);
 
 			if (powerNode.name === "MonsterPower") {
 				const usage = powerNode.valueWithPath("Usage");
-				appendTag("format", (usage || "").toLowerCase(), false);
+				appendTag("format", (usage || "").toLowerCase());
 
 				const action = powerNode.valueWithPath("Action");
-				appendTag("leftsub", action ? (action.indexOf("Immediate") > -1 || action.indexOf("Action") > -1 ? action : action + " Action") : "", false);
+				appendTag("leftsub", action ? (action.indexOf("Immediate") > -1 || action.indexOf("Action") > -1 ? action : action + " Action") : "");
 				const usageDetails = powerNode.valueWithPath("UsageDetails");
-				appendTag("rightsub", usage + (usageDetails ? " " + usageDetails : ""), false);
+				appendTag("rightsub", usage + (usageDetails ? " " + usageDetails : ""));
 
 				appendTag("Requirements", powerNode.valueWithPath("Requirements"));
 				appendTag("Trigger", powerNode.valueWithPath("Trigger"));

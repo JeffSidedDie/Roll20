@@ -1,22 +1,22 @@
 {
   "name": "roll20",
-  "version": "0.0.1",
+  "version": "0.4.4",
   "description": "Roll20 API Scripts",
   "license": "UNLICENSED",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/Shaangor/Roll20"
   },
   "private": true,
   "dependencies": {
     "xmldoc": "^0.5.1"
   },
   "devDependencies": {
-    "@types/node": "^6.0.63",
-    "@types/underscore": "^1.7.36",
-    "tslint": "^4.4.2",
-    "typescript": "^2.2.1",
-    "webpack": "^1.14.0"
+    "@types/node": "^6.0.88",
+    "@types/underscore": "^1.8.2",
+    "tslint": "^4.5.1",
+    "typescript": "^2.5.2",
+    "webpack": "^1.15.0"
   },
   "scripts": {
     "build": "tsc -listFiles && webpack"

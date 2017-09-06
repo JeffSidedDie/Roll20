@@ -1,0 +1,19 @@
+{
+	// See https://go.microsoft.com/fwlink/?LinkId=733558
+	// for the documentation about the tasks.json format
+	"version": "0.1.0",
+	// "command": "${cwd}/node_modules/.bin/tsc",
+	"command": "cmd",
+	// "args": ["-p", ".", "-listFiles"],
+	"args": ["/C"],
+	"isShellCommand": true,
+	"showOutput": "always",
+	// "problemMatcher": "$tsc",
+	"echoCommand": true,
+	"tasks": [
+		{
+			"taskName": "npm run build",
+			"isBuildCommand": true
+		}
+	]
+}

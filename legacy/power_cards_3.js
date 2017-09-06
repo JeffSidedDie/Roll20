@@ -1,10 +1,7 @@
-// NEW SCRIPT ERROR PROOFING
-;
-
 // VERSION INFO
 var PowerCards_Author = "SkyCaptainXIII";
-var PowerCards_Version = "3.3.0";
-var PowerCards_LastUpdated = 1486824132;
+var PowerCards_Version = "3.5.0";
+var PowerCards_LastUpdated = 1497663376;
 
 // FUNCTION DECLARATIONS
 var PowerCard = PowerCard || {};
@@ -27,7 +24,7 @@ var INLINE_ROLL_DEFAULT = " background-color: #FFFEA2; border-color: #87850A; co
 var INLINE_ROLL_CRIT_LOW = " background-color: #FFAAAA; border-color: #660000; color: #660000;";
 var INLINE_ROLL_CRIT_HIGH = " background-color: #88CC88; border-color: #004400; color: #004400;";
 var INLINE_ROLL_CRIT_BOTH = " background-color: #8FA4D4; border-color: #061539; color: #061539;";
-var INLINE_ROLL_STYLE = "text-align: center; font-size: 100%; font-weight: bold; display: inline-block; min-width: 1.75em; height: 1em; margin-top: -1px; margin-bottom: 1px; padding: 0px 2px; border: 1px solid; border-radius: 3px;";
+var INLINE_ROLL_STYLE = "text-align: center; font-size: 100%; display: inline-block; font-weight: bold; height: 1em; min-width: 1.75em; margin-top: -1px; margin-bottom: 1px; padding: 0px 2px; border: 1px solid; border-radius: 3px;";
 
 // API COMMAND HANDLER
 on("chat:message", function (msg) {
@@ -39,7 +36,7 @@ on("chat:message", function (msg) {
         PowerCard.Process(msg, player_obj);
     }
     if (msg.content.split(" ", 1)[0] === "!power_version") {
-        safeSendChat("", "/w " + msg.who + " You are using version " + PowerCards_Version + " of PowerCards, authored by " + PowerCards_Author + ", which was last updated on: " + PowerCards_LastUpdated + ".");
+        sendChat("", "/w " + msg.who + " You are using version " + PowerCards_Version + " of PowerCards, authored by " + PowerCards_Author + ", which was last updated on: " + PowerCards_LastUpdated + ".");
     }
 });
 
@@ -64,7 +61,6 @@ PowerCard.Process = function (msg, player_obj) {
     var SHOW_AVATAR = true; // Set to false to hide character sheet avatar in custom emotes
     var USE_DEFAULT_FORMAT = false; // Set to true if you want powercards to default formatting
     var USE_PLAYER_COLOR = false; // Set to true to override all color formatting
-    var USE_TIMESTAMPS = true; // Set to false to turn off time stamps in chat
 
     // REPLACE INLINE ROLLS WITH EXPRESSIONS
     if (msg.inlinerolls !== undefined) {
@@ -92,12 +88,15 @@ PowerCard.Process = function (msg, player_obj) {
     var Display = "";
     var PlayerBGColor = (player_obj) ? player_obj.get("color") : "#FFFFFF";
     var PlayerTXColor = (getBrightness(PlayerBGColor) < (255 / 2)) ? "#FFFFFF" : "#000000";
-    PowerCard.titlefont = "Georgia";
+    var PlayerTXShadow = (getBrightness(PlayerBGColor) < (255 / 2)) ? "#000000" : "#FFFFFF";
+    PowerCard.titlefont = "Contrail One";
     PowerCard.titlefontvariant = "normal";
+    PowerCard.titlefontshadow = "-1px -1px 0 " + PlayerTXShadow + ", 1px -1px 0 " + PlayerTXShadow + ", -1px 1px 0 " + PlayerTXShadow + ", 1px 1px 0 " + PlayerTXShadow + ";";
+    PowerCard.titlebackground = "linear-gradient(rgba(255, 255, 255, .3), rgba(255, 255, 255, 0));";
     PowerCard.subtitlefont = "Tahoma";
     PowerCard.subtitlefontvariant = "normal";
     PowerCard.bodyfont = "Helvetica";
-    PowerCard.titlefontsize = "18px";
+    PowerCard.titlefontsize = "1.2em; line-height: 1.2em";
     PowerCard.subtitlefontsize = "11px";
     PowerCard.bodyfontsize = "14px";
     PowerCard.txcolor = PlayerTXColor;
@@ -106,9 +105,10 @@ PowerCard.Process = function (msg, player_obj) {
     PowerCard.erowbg = "#B6AB91"; // #B6AB91 - Default darker brown
     PowerCard.orowtx = "#000000";
     PowerCard.orowbg = "#CEC7B6"; // #CEC7B6 - Default light brown
-    PowerCard.corners = 3; // Set to 0 to remove rounded corners from PowerCards
+    PowerCard.corners = 5; // Set to 0 to remove rounded corners from PowerCards
     PowerCard.border = "1px solid #000000"; // size style #color
     PowerCard.boxshadow = ""; // h-distance v-distance blur spread #color
+    PowerCard.lineheight = "1.1em";
 
     // CREATE POWERCARD OBJECT
     n.shift();
@@ -168,6 +168,7 @@ PowerCard.Process = function (msg, player_obj) {
         var RollResults = "";
         var RollBase = 0;
         var RollOnes = 0;
+        var RollTens = 0;
         var RollTotal = 0;
         var RollSuccesses = 0;
         var Rolls = {};
@@ -189,6 +190,7 @@ PowerCard.Process = function (msg, player_obj) {
                         t = 0;
                         RollBase = 0;
                         RollOnes = 0;
+                        RollTens = 0;
                         while (RollResults[t] !== undefined) {
                             if ("table" in x[0].inlinerolls[Roll].results.rolls[RollCount + 1]) {
                                 if (RollResults[t].tableidx) RollBase = RollBase + RollResults[t].tableidx;
@@ -196,6 +198,7 @@ PowerCard.Process = function (msg, player_obj) {
                                 if (!RollResults[t].d) RollBase = RollBase + RollResults[t].v;
                             }
                             RollOnes = (RollResults[t].v === 1) ? RollOnes += 1 : RollOnes;
+                            RollTens = (RollResults[t].v === 10) ? RollTens += 1 : RollTens;
                             t++;
                         }
                     }
@@ -228,7 +231,8 @@ PowerCard.Process = function (msg, player_obj) {
                         "base": RollBase,
                         "total": RollTotal,
                         "successes": RollSuccesses,
-                        "ones": RollOnes
+                        "ones": RollOnes,
+                        "tens": RollTens
                     };
                 }
                 RollCount++;
@@ -251,12 +255,12 @@ PowerCard.Process = function (msg, player_obj) {
             // GET AVATAR FROM CHARACTER SHEET
             if (PowerCard.charid !== undefined) {
                 Character = getObj("character", PowerCard.charid);
-                Avatar = (Character !== undefined && Character.get("avatar") !== "") ? "<img src=" + Character.get('avatar') + " style='height: 50px; width: 50px; margin-left: -10px; padding: 0px 2px 4px 0px; vertical-align: middle; float: left;'></img>" : "";
+                Avatar = (Character !== undefined && Character.get("avatar") !== "") ? "<img src=" + Character.get('avatar') + " style='height: 50px; min-width: 50px; float: left;'></img>" : "";
             }
             // GET AVATAR FROM TOKEN IMAGE
             if (PowerCard.tokenid !== undefined) {
                 Token = getObj("graphic", PowerCard.tokenid);
-                Avatar = (Token !== undefined && Token.get("imgsrc") !== "") ? "<img src=" + Token.get('imgsrc') + " style='height: 50px; width: 50px; margin-left: -10px; padding: 0px 2px 4px 0px; vertical-align: middle; float: left;'></img>" : "";
+                Avatar = (Token !== undefined && Token.get("imgsrc") !== "") ? "<img src=" + Token.get('imgsrc') + " style='height: 50px; min-width: 50px; float: left;'></img>" : "";
             }
             // HIDE AVATAR
             if (PowerCard.emote.charAt(0) === "!") {
@@ -278,26 +282,26 @@ PowerCard.Process = function (msg, player_obj) {
                 EmoteTextAlign = "justify";
             }
             // CREATE EMOTE DIV
-            if (SHOW_AVATAR) PowerCard.emote = "<div style='display: block; min-height: 50px; width: 100%; font-size: 13px; vertical-align: middle; text-align: " + EmoteTextAlign + ";'>" + Avatar + doInlineFormatting(PowerCard.emote) + "</div>";
-            else PowerCard.emote = "<div style='display: block; min-height: 50px; width: 100%; font-size: 13px; vertical-align: middle; text-align: " + EmoteTextAlign + ";'>" + doInlineFormatting(PowerCard.emote) + "</div>";
+            if (SHOW_AVATAR) PowerCard.emote = "<div style='display: table; margin: -5px 0px 3px -7px; font-weight: normal; font-style: normal;'>" + Avatar + "<div style='display: table-cell; width: 100%; vertical-align: middle; text-align: " + EmoteTextAlign + "; padding: 0px 2px;'>" + doInlineFormatting(PowerCard.emote) + "</div></div>";
+            else PowerCard.emote = "<div style='text-align: " + EmoteTextAlign + ";'>" + doInlineFormatting(PowerCard.emote) + "</div>";
         }
 
         // CREATE SHADOWBOX STYLE...
-        var ShadowBoxStyle = "" + "clear: both; " + "margin-left: -10px; " + "box-shadow: " + PowerCard.boxshadow + "; " + "border-radius: " + PowerCard.corners + "px; ";
+        var ShadowBoxStyle = "" + "clear: both; " + "margin-left: -7px; " + "box-shadow: " + PowerCard.boxshadow + "; " + "border-radius: " + PowerCard.corners + "px; ";
 
         // CREATE TITLE STYLE...
-        var TitleStyle = "" + "font-family: " + PowerCard.titlefont + "; " + "font-size: " + PowerCard.titlefontsize + "; " + "font-weight: normal; " + "font-variant: " + PowerCard.titlefontvariant + "; " + "letter-spacing: 2px; " + "text-align: center; " + "vertical-align: middle; " + "margin: 0px; " + "padding: 3px 0px 0px 0px; " + "border: " + PowerCard.border + "; " + "border-radius: " + PowerCard.corners + "px " + PowerCard.corners + "px 0px 0px; ";
+        var TitleStyle = "" + "font-family: " + PowerCard.titlefont + "; " + "font-size: " + PowerCard.titlefontsize + "; " + "font-weight: normal; font-style: normal; " + "font-variant: " + PowerCard.titlefontvariant + "; " + "letter-spacing: 2px; " + "text-align: center; " + "vertical-align: middle; " + "margin: 0px; " + "padding: 2px 0px 0px 0px; " + "border: " + PowerCard.border + "; " + "border-radius: " + PowerCard.corners + "px " + PowerCard.corners + "px 0px 0px; ";
 
         // CREATE SUBTITLE STYLE...
-        var SubTitleStyle = "" + "font-family: " + PowerCard.subtitlefont + "; " + "font-size: " + PowerCard.subtitlefontsize + "; " + "font-weight: normal; " + "font-variant: " + PowerCard.subtitlefontvariant + "; " + "letter-spacing: 1px;";
+        var SubTitleStyle = "" + "font-family: " + PowerCard.subtitlefont + "; " + "font-size: " + PowerCard.subtitlefontsize + "; " + "font-weight: normal; font-style: normal; " + "font-variant: " + PowerCard.subtitlefontvariant + "; " + "letter-spacing: 1px;";
 
         // ADD BACKGROUND & TEXT COLORS...
         if (USE_PLAYER_COLOR === true && PowerCard.format === undefined) {
             TitleStyle += " color: " + PlayerTXColor + ";";
             TitleStyle += " background-color: " + PlayerBGColor + ";";
         } else {
-            TitleStyle += " color: " + PowerCard.txcolor + ";";
-            TitleStyle += " background-color: " + PowerCard.bgcolor + ";";
+            TitleStyle += " color: " + PowerCard.txcolor + "; text-shadow: " + PowerCard.titlefontshadow + ";";
+            TitleStyle += " background-color: " + PowerCard.bgcolor + "; background-image: " + PowerCard.titlebackground + ";";
         }
 
         // CREATE TITLEBOX...
@@ -311,7 +315,8 @@ PowerCard.Process = function (msg, player_obj) {
         Subtitle += (PowerCard.rightsub !== undefined) ? PowerCard.rightsub : "";
 
         // ADD TITLE AND SUBTITLE TO DISPLAY OBJECT...
-        Display += doInlineFormatting(Title + Subtitle + "</span></div>", ALLOW_URLS, ALLOW_HIDDEN_URLS);
+        if (PowerCard.name !== undefined) Display += doInlineFormatting(Title + Subtitle + "</span></div>", ALLOW_URLS, ALLOW_HIDDEN_URLS);
+        else Display += "<div style='" + ShadowBoxStyle + "'>";
 
         // CREATE ROW STYLES & OTHER INFO...
         var OddRow = "color: " + PowerCard.orowtx + "; background-color: " + PowerCard.orowbg + "; ";
@@ -321,10 +326,12 @@ PowerCard.Process = function (msg, player_obj) {
         var Indent = 0;
 
         // ROW STYLE...
-        var RowStyle = "" + "line-height: 1.1em; " + "vertical-align: middle; " + "font-family: " + PowerCard.bodyfont + "; " + "font-size: " + PowerCard.bodyfontsize + "; " + "font-weight: normal; " + "margin 0px; " + "padding: 4px 5px 2px 5px; " + "border-left: " + PowerCard.border + "; " + "border-right: " + PowerCard.border + "; " + "border-radius: 0px;";
+        var RowStyle = "" + "line-height: " + PowerCard.lineheight + "; " + "vertical-align: middle; " + "font-family: " + PowerCard.bodyfont + "; " + "font-size: " + PowerCard.bodyfontsize + "; " + "font-weight: normal; font-style: normal; text-align: left; " + "margin 0px; " + "padding: 4px 5px 2px 5px; " + "border-left: " + PowerCard.border + "; " + "border-right: " + PowerCard.border + ";";
 
-        // LAST ROW STYLE...
-        var LastRowStyle = RowStyle + " border-bottom: " + PowerCard.border + ";" + " border-radius: 0px 0px " + PowerCard.corners + "px " + PowerCard.corners + "px;";
+        // ALT ROW STYLES...
+        var FirstRowStyle = RowStyle + "border-top: " + PowerCard.border + "; border-radius: " + PowerCard.corners + "px " + PowerCard.corners + "px 0px 0px;";
+        var LastRowStyle = RowStyle + " border-bottom: " + PowerCard.border + "; border-radius: 0px 0px " + PowerCard.corners + "px " + PowerCard.corners + "px;";
+        var OneRowStyle = RowStyle + " border: " + PowerCard.border + "; border-radius: " + PowerCard.corners + "px;";
 
         // KEY INFO...
         var KeyCount = 0;
@@ -349,13 +356,13 @@ PowerCard.Process = function (msg, player_obj) {
                     RightVal = Conditional.shift();
                     // GET LEFT SIDE VALUES...
                     if (LeftVal !== undefined && LeftVal.match(/\$\[\[/)) {
-                        LeftVal = parseInt(x[0].inlinerolls[LeftVal.match(/[0-9]+/)].results.total);
+                        LeftVal = parseFloat(x[0].inlinerolls[LeftVal.match(/[0-9]+/)].results.total);
                     } else if (LeftVal !== undefined && LeftVal.charAt(0) === "$") {
                         LeftVal = LeftVal.split(".");
                         if (LeftVal[1]) {
                             if (LeftVal[1] == "ss") LeftVal[1] = "successes";
                         } else LeftVal[1] = "total";
-                        if (Rolls[LeftVal[0]]) LeftVal = parseInt(Rolls[LeftVal[0]][LeftVal[1]]);
+                        if (Rolls[LeftVal[0]]) LeftVal = parseFloat(Rolls[LeftVal[0]][LeftVal[1]]);
                     } else {
                         if (isFinite(LeftVal) && !isNaN(LeftVal)) {
                             LeftVal = (parseFloat(LeftVal) || 0);
@@ -365,13 +372,13 @@ PowerCard.Process = function (msg, player_obj) {
                     }
                     // GET RIGHT SIDE VALUES...
                     if (RightVal !== undefined && RightVal.match(/\$\[\[/)) {
-                        RightVal = parseInt(x[0].inlinerolls[RightVal.match(/[0-9]+/)].results.total);
+                        RightVal = parseFloat(x[0].inlinerolls[RightVal.match(/[0-9]+/)].results.total);
                     } else if (RightVal !== undefined && RightVal.charAt(0) === "$") {
                         RightVal = RightVal.split(".");
                         if (RightVal[1]) {
                             if (RightVal[1] == "ss") RightVal[1] = "successes";
                         } else RightVal[1] = "total";
-                        if (Rolls[RightVal[0]]) RightVal = parseInt(Rolls[RightVal[0]][RightVal[1]]);
+                        if (Rolls[RightVal[0]]) RightVal = parseFloat(Rolls[RightVal[0]][RightVal[1]]);
                     } else {
                         if (isFinite(RightVal) && !isNaN(RightVal)) {
                             RightVal = (parseFloat(RightVal) || 0);
@@ -422,7 +429,7 @@ PowerCard.Process = function (msg, player_obj) {
         });
 
         // REMOVE IGNORED TAGS...
-        var IgnoredTags = ["charid", "tokenid", "emote", "leftsub", "rightsub", "name", "txcolor", "bgcolor", "erowbg", "erowtx", "orowbg", "orowtx", "whisper", "format", "title", "target_list", "titlefont", "subtitlefont", "bodyfont", "corners", "titlefontsize", "subtitlefontsize", "bodyfontsize", "border", "boxshadow", "titlefontvariant", "subtitlefontvariant"];
+        var IgnoredTags = ["charid", "tokenid", "emote", "leftsub", "rightsub", "name", "txcolor", "bgcolor", "erowbg", "erowtx", "orowbg", "orowtx", "whisper", "format", "title", "target_list", "titlefont", "subtitlefont", "bodyfont", "corners", "titlefontsize", "subtitlefontsize", "bodyfontsize", "border", "boxshadow", "titlefontvariant", "subtitlefontvariant", "titlefontshadow", "titlebackground", "lineheight"];
         IgnoredTags.forEach(function (Tag) {
             if (Keys.indexOf(Tag) !== -1) Keys.splice(Keys.indexOf(Tag), 1);
         });
@@ -430,8 +437,15 @@ PowerCard.Process = function (msg, player_obj) {
         // PLAY SOUNDFX & THEN REMOVE HIDDEN & SOUNDFX TAGS...
         var NewKeys = [];
         Keys.forEach(function (Tag) {
-            if (Tag.substring(0, 7) == "soundfx") sendChat(msg.playerid, "!roll20AM " + PowerCard[Tag].replace(/\_/g, "--"));
-            if (Tag.charAt(0) !== "$" && Tag !== "hroll" && Tag !== "hrolls" && Tag.substring(0, 7) !== "soundfx") NewKeys.push(Tag);
+            if (Tag.substring(0, 7) == "soundfx" || Tag.substring(0, 8) == "alterbar") {
+                if (Tag.substring(0, 7) == "soundfx") sendChat("", "!roll20AM " + PowerCard[Tag].replace(/\_/g, "--"));
+                if (Tag.substring(0, 8) == "alterbar") {
+                    PowerCard[Tag] = doInlineFormatting(PowerCard[Tag], ALLOW_URLS, ALLOW_HIDDEN_URLS, Rolls);
+                    sendChat(msg.who, "!alter " + PowerCard[Tag].replace(/\_/g, "--"));
+                }
+            } else {
+                if (Tag.charAt(0) !== "$" && Tag !== "hroll" && Tag !== "hrolls") NewKeys.push(Tag);
+            }
         });
         Keys = NewKeys;
 
@@ -441,7 +455,15 @@ PowerCard.Process = function (msg, player_obj) {
             KeyCount++;
             Content = doInlineFormatting(PowerCard[Tag], ALLOW_URLS, ALLOW_HIDDEN_URLS, Rolls);
             RowBackground = (RowNumber % 2 == 1) ? OddRow : EvenRow;
-            RowBackground += (KeyCount === Keys.length) ? LastRowStyle : RowStyle;
+            if (PowerCard.name === undefined) {
+                if (Keys.length !== 1 && KeyCount === 1) RowBackground += FirstRowStyle;
+                else if (Keys.length !== 1 && KeyCount === Keys.length) RowBackground += LastRowStyle;
+                else if (Keys.length === 1) RowBackground += OneRowStyle;
+                else RowBackground += RowStyle;
+            } else {
+                if (KeyCount === Keys.length) RowBackground += LastRowStyle;
+                else RowBackground += RowStyle;
+            }
             if (Content.indexOf("$[[") === -1) RowBackground = RowBackground.replace("padding: 4px 5px 2px 5px", "padding: 4px 5px 3px 5px");
             RowNumber += 1;
             Tag = Tag.replace(/( #[0-9]+)/g, ""); // Hides multitag numbers...
@@ -483,22 +505,13 @@ PowerCard.Process = function (msg, player_obj) {
             });
         }
 
-        // SEND TO CHAT...
-        var TimeStamp = "";
-        var Spacer = "/desc ";
-        if (USE_TIMESTAMPS) {
-            TimeStamp = "(" + getCurrentTime() + ") " + msg.who;
-            Spacer = " ";
-        }
-
         // WHISPER
         if (PowerCard.whisper !== undefined) {
             if (PowerCard.emote !== undefined) {
                 if (PowerCard.charid !== undefined || PowerCard.tokenid !== undefined) {
-                    safeSendChat(TimeStamp, Spacer);
-                    safeSendChat(TimeStamp, "/direct " + PowerCard.emote)
+                    safeSendChat("", "/desc " + PowerCard.emote)
                 } else {
-                    safeSendChat(TimeStamp, '/emas " " ' + PowerCard.emote);
+                    safeSendChat("", '/emas " " ' + PowerCard.emote);
                 }
             }
             _.each(PowerCard.whisper.split(","), function (y) {
@@ -508,21 +521,19 @@ PowerCard.Process = function (msg, player_obj) {
         } else {
             if (PowerCard.emote !== undefined) {
                 if (PowerCard.charid !== undefined || PowerCard.tokenid !== undefined) {
-                    safeSendChat(TimeStamp, Spacer);
-                    safeSendChat(TimeStamp, "/direct " + PowerCard.emote + Display);
+                    safeSendChat("", "/desc " + PowerCard.emote + Display);
                 } else {
-                    safeSendChat(TimeStamp, '/emas " " ' + PowerCard.emote);
-                    safeSendChat(TimeStamp, "/direct " + Display);
+                    safeSendChat("", '/emas " " ' + PowerCard.emote);
+                    safeSendChat("", "/desc " + Display);
                 }
             } else {
-                safeSendChat(TimeStamp, Spacer);
-                safeSendChat(TimeStamp, "/direct " + Display);
+                safeSendChat("", "/desc " + Display);
             }
         }
     });
 };
 
-/* FUNCTIONS /////////////////////////////////////////////////////////////////// */
+// FUNCTIONS ///////////////////////////////////////////////////////////////////
 function buildInline(inlineroll, TrackerID, who) {
     var InlineColorOverride = "";
     var values = [];
@@ -798,25 +809,37 @@ function statusSymbol(symbol, altForReplace) {
 
 function doInlineFormatting(content, ALLOW_URLS, ALLOW_HIDDEN_URLS, Rolls) {
     // REPLACE [^ID] with value...
-    var RollID;
-    while (content.indexOf("[^") !== -1) {
-        RollID = content.match(/\[\^(.*?)\]/);
-        if (Rolls["$" + RollID[1].split(".")[0]]) {
-            switch (RollID[1].split(".")[1]) {
-                case "total":
-                    content = content.replace(RollID[0], Rolls["$" + RollID[1].split(".")[0]].total);
-                case "base":
-                    content = content.replace(RollID[0], Rolls["$" + RollID[1].split(".")[0]].base);
-                case "ss":
-                    content = content.replace(RollID[0], Rolls["$" + RollID[1].split(".")[0]].successes);
-                case "ones":
-                    content = content.replace(RollID[0], Rolls["$" + RollID[1].split(".")[0]].ones);
-                default:
-                    content = content.replace(RollID[0], Rolls["$" + RollID[1].split(".")[0]].total);
+    var RollIDs = content.match(/\[\^(.*?)\]/g);
+    if (RollIDs) {
+        var rID;
+        var rOpt;
+        var rCount = 0;
+        _.each(RollIDs, function (r) {
+            rCount++;
+            rID = r.split(".")[0].split("[^")[1].replace("]", "");
+            rOpt = (r.split(".")[1] !== undefined) ? r.split(".")[1].replace("]", "") : "total";
+            if (Rolls["$" + rID]) {
+                switch (rOpt) {
+                    case "base":
+                        content = content.replace(r, Rolls["$" + rID].base);
+                        break;
+                    case "total":
+                        content = content.replace(r, Rolls["$" + rID].total);
+                        break;
+                    case "ss":
+                        content = content.replace(r, Rolls["$" + rID].successes);
+                        break;
+                    case "ones":
+                        content = content.replace(r, Rolls["$" + rID].ones);
+                        break;
+                    case "tens":
+                        content = content.replace(r, Rolls["$" + rID].tens);
+                        break;
+                }
+            } else {
+                content = content.replace(r, " > ROLL ID NOT FOUND < ");
             }
-        } else {
-            content = content.replace(RollID[0], "Roll ID Not Found");
-        }
+        });
     }
 
     // PARSE FOR INLINE FORMATTING
@@ -836,7 +859,7 @@ function doInlineFormatting(content, ALLOW_URLS, ALLOW_HIDDEN_URLS, Rolls) {
                 .replace(/\~\L(.*?)\~\L/g, "<span style='text-align: left;'>$1</span>")
                 .replace(/\~\C(.*?)\~\C/g, "<div style='text-align: center; display: block;'>$1</div>")
                 .replace(/\~\R(.*?)\~\R/g, "<div style='text-align: right; float: right;'>$1</div><div style='clear: both;'></div>")
-                .replace(/\[\!(.*?)\!\]/g, "<span style='text-align: center; font-size: 100%; font-weight: bold; display: inline-block; min-width: 1.75em; height: 1em; border-radius: 3px; border: 1px solid; background-color: #FFFEA2; border-color: #87850A; color: #000000;' title='Created by PowerCards' class='showtip tipsy'>$1</span>")
+                .replace(/\[\!(.*?)\!\]/g, "<span style='text-align: center; font-size: 100%; font-weight: bold; display: inline-block; min-width: 1.75em; padding: 0px 2px; height: 1em; border-radius: 3px; border: 1px solid; background-color: #FFFEA2; border-color: #87850A; color: #000000;' title='Created by PowerCards' class='showtip tipsy'>$1</span>")
                 ;
         };
     str = _.reduce(
@@ -993,16 +1016,8 @@ function getTargetInfo(content, TargetList) {
             case 'bar3_max':
                 return Token.get(charm);
             default:
-                var addBraces = false;
-                if (charm.indexOf("%") === 0) {
-                    charm = charm.replace("%", "");
-                    addBraces = true;
-                }
                 attr = getAttrByName(Character.id, charm);
                 attr = getAttrRefValues(Character.id, attr);
-                if (addBraces) {
-                    attr = "[[" + attr + "]]";
-                }
                 return (Character && attr) || 'ERROR';
         }
     });
@@ -1016,4 +1031,3 @@ function safeSendChat(speakingAs, message, callback) {
         sendChat("PowerCards", JSON.stringify(e));
     }
 }
-/* END FUNCTIONS /////////////////////////////////////////////////////////////// */

@@ -51,7 +51,7 @@ interface Roll20ObjectBase<TImmutableSynchronousGetProperties, TImmutableAsynchr
 	 * @param property The name of the property to set.
 	 * @param value The value to set for the specified property.
 	 */
-	set<K extends keyof (TMutableSynchronousGetProperties & TMutableAsynchronousGetProperties)>(property: K, value: (TMutableSynchronousGetProperties & TMutableAsynchronousGetProperties)[K]): void;
+	set<K extends keyof (TMutableSynchronousGetProperties | TMutableAsynchronousGetProperties)>(property: K, value: (TMutableSynchronousGetProperties | TMutableAsynchronousGetProperties)[K]): void;
 
 	/**
 	 * Sets one specified property value and runs the character sheet workers related to that property (if any).
@@ -59,21 +59,21 @@ interface Roll20ObjectBase<TImmutableSynchronousGetProperties, TImmutableAsynchr
 	 * @param property The name of the property to set.
 	 * @param value The value to set for the specified property.
 	 */
-	setWithWorker<K extends keyof (TMutableSynchronousGetProperties & TMutableAsynchronousGetProperties)>(property: K, value: (TMutableSynchronousGetProperties & TMutableAsynchronousGetProperties)[K]): void;
+	setWithWorker<K extends keyof (TMutableSynchronousGetProperties | TMutableAsynchronousGetProperties)>(property: K, value: (TMutableSynchronousGetProperties | TMutableAsynchronousGetProperties)[K]): void;
 
 	/**
 	 * Sets one or more specified property values.
 	 * 
 	 * @param properties The properties of the properties object will be mapped to the properties of the Roll20 object.
 	 */
-	set(properties: Partial<TMutableSynchronousGetProperties & TMutableAsynchronousGetProperties>): void;
+	set(properties: Partial<TMutableSynchronousGetProperties | TMutableAsynchronousGetProperties>): void;
 
 	/**
 	 * Sets one or more specified property values and runs the character sheet workers related to that property (if any).
 	 * 
 	 * @param properties The properties of the properties object will be mapped to the properties of the Roll20 object.
 	 */
-	setWithWorker(properties: Partial<TMutableSynchronousGetProperties & TMutableAsynchronousGetProperties>): void;
+	setWithWorker(properties: Partial<TMutableSynchronousGetProperties | TMutableAsynchronousGetProperties>): void;
 }
 
 interface Roll20ObjectBaseProperties {

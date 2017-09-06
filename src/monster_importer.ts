@@ -137,7 +137,7 @@ class MonsterImporter extends Roll20ApiScript {
 						hitLine += "[[ " + damage + " ]] ";
 					}
 					if (onHit) {
-						hitLine += onHit.replace(/([0-9]+)d([0-9]{1,2})\s*([+|-]\s*[0-9]+)?/g, (str) => "[[ " + str + " ]] ");;
+						hitLine += onHit.replace(/([0-9]+)d([0-9]{1,2})\s*([+|-]\s*[0-9]+)?/g, (str) => "[[ " + str + " ]] ");
 					}
 
 					appendTag("Hit", hitLine);

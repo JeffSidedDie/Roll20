@@ -1016,8 +1016,16 @@ function getTargetInfo(content, TargetList) {
             case 'bar3_max':
                 return Token.get(charm);
             default:
+                var addBraces = false;
+                if (charm.indexOf("%") === 0) {
+                    charm = charm.replace("%", "");
+                    addBraces = true;
+                }
                 attr = getAttrByName(Character.id, charm);
                 attr = getAttrRefValues(Character.id, attr);
+                if (addBraces) {
+                    attr = "[[" + attr + "]]";
+                }
                 return (Character && attr) || 'ERROR';
         }
     });

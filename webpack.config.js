@@ -6,7 +6,7 @@ module.exports = [
             monster_importer: ["./build/monster_importer.js"],
             turn_timer: ["./build/turn_timer.js"],
             turn_tracker: ["./build/turn_tracker.js"],
-            purple_fog: ["./build/purple_fog.js"],
+            torch_toggler: ["./build/torch_toggler.js"],
         },
         output: {
             path: __dirname + "/lib",

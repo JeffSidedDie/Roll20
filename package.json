@@ -15,7 +15,7 @@
     "@types/node": "^7.0.52",
     "@types/underscore": "^1.8.2",
     "tslint": "^4.5.1",
-    "typescript": "^2.5.2",
+    "typescript": "^2.6.2",
     "webpack": "^1.15.0"
   },
   "scripts": {

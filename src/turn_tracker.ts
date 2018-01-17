@@ -133,10 +133,10 @@ class TurnTracker extends Roll20ApiScript {
 							// Moving up the turn order is legal as long as every combatant now-before the moved one has taken same turns
 							for (let i = orderFirstChangedIndex + 1; i <= orderLastChangedIndex; i++) {
 								const incomingCombatant = incomingTurnOrder[i];
-								let incomingCombatantTurns = this.turns[incomingCombatant.id];
-								if (incomingCombatant.id === currentCombatantId) {
-									incomingCombatantTurns -= 1; // Subtract a turn from current combatant when interrupting since they will decremented
-								}
+								// let incomingCombatantTurns = this.turns[incomingCombatant.id];
+								// if (incomingCombatant.id === currentCombatantId) {
+								// 	incomingCombatantTurns -= 1; // Subtract a turn from current combatant when interrupting since they will decremented
+								// }
 								if (this.turns[incomingCombatant.id] !== movedCombatantCurrentTurns) {
 									isLegalMove = false;
 								}

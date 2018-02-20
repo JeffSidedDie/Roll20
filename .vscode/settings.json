@@ -13,6 +13,7 @@
 		}
 	},
 	"typescript.tsdk": "./node_modules/typescript/lib",
+	"tslint.nodePath": "./node_modules/tslint/lib",
 	"tslint.exclude": "**/*.js",
-	"editor.formatOnSave": true
+	"editor.formatOnSave": true,
 }

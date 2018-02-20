@@ -1,6 +1,6 @@
 {
   "name": "roll20",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "Roll20 API Scripts",
   "license": "UNLICENSED",
   "repository": {
@@ -12,13 +12,15 @@
     "xmldoc": "^0.5.1"
   },
   "devDependencies": {
-    "@types/node": "^7.0.52",
-    "@types/underscore": "^1.8.2",
-    "tslint": "^4.5.1",
-    "typescript": "^2.6.2",
-    "webpack": "^1.15.0"
+    "@types/cheerio": "0.22.0",
+    "@types/node": "^7.0.53",
+    "@types/underscore": "1.8.3",
+    "@types/webpack": "^3.8.5",
+    "tslint": "^5.9.1",
+    "typescript": "^2.7.1",
+    "webpack": "^3.11.0"
   },
   "scripts": {
-    "build": "tsc -listFiles && webpack"
+    "build": "tsc && webpack"
   }
 }

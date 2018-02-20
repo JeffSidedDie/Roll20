@@ -1,24 +1,26 @@
 {
-	"compilerOptions": {
-		"allowJs": false,
-		"noEmitOnError": true,
-		"noFallthroughCasesInSwitch": true,
-		"noImplicitAny": true,
-		"noImplicitReturns": true,
-		"noImplicitThis": true,
-		"noUnusedLocals": true,
-		"noUnusedParameters": true,
-		"outDir": "build",
-		"sourceMap": true,
-		"strictNullChecks": true,
-		"target": "es5",
-		"watch": false
-	},
-	"exclude": [
-		"node_modules",
-		"legacy"
-	],
-	"include": [
-		"src/**/*"
-	]
+    "compileOnSave": true,
+    "compilerOptions": {
+        "allowJs": false,
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "noEmitOnError": true,
+        "noFallthroughCasesInSwitch": true,
+        "noImplicitReturns": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "removeComments": true,
+        "sourceMap": false,
+        "strict": true,
+        "target": "es6",
+        "watch": false
+    },
+    "exclude": [
+        "node_modules",
+        "legacy"
+    ],
+    "include": [
+        "src/**/*.ts",
+        "webpack.config.ts",
+    ]
 }

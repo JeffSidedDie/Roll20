@@ -1,6 +1,8 @@
 import { XmlDocument, XmlElement } from "xmldoc";
 import { Roll20ApiScript } from "./roll20ApiScript";
 
+// Run using: !import-monster @{selected|token_id}
+
 class MonsterImporter extends Roll20ApiScript {
     private _errorMessage = "";
     private _errorObject = "";
@@ -24,7 +26,8 @@ class MonsterImporter extends Roll20ApiScript {
         // Clean gm notes
         gmnotes = unescape(gmnotes);
         gmnotes = _.unescape(gmnotes);
-        gmnotes = gmnotes.replace(/<br>/g, ""); // Roll20 seems to replace newlines with break tags
+        gmnotes = gmnotes.replace(/(<br>)|(<p>)|(<\/p>)|(&nbsp;)/g, ""); // Roll20 seems to replace newlines with break tags
+        gmnotes = gmnotes.replace(/<\?xml.*\?>/, "");
 
         let xml: XmlDocument;
         try {
@@ -45,7 +48,7 @@ class MonsterImporter extends Roll20ApiScript {
         // CREATE CHARACTER SHEET & LINK TOKEN TO SHEET
         const character = createObj("character", {
             archived: false,
-            avatar: token.get("imgsrc"),
+            //avatar: token.get("imgsrc"),
             name: monsterName,
         });
         if (!character) {
@@ -138,7 +141,7 @@ class MonsterImporter extends Roll20ApiScript {
                 const multipleAttacks = rangeLower.indexOf("burst") !== -1 || rangeLower.indexOf("blast") !== -1;
                 if (multipleAttacks) {
                     let targetList = "";
-                    const numTargets = 6;
+                    const numTargets = 3;
                     _.times(numTargets, (n) => targetList += `${(n > 0 ? " | " : "")}@{target|Target${(n + 1)}|token_id}`);
                     appendTag("target_list", targetList);
                 }

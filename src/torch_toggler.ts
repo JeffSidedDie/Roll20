@@ -29,16 +29,16 @@ class TorchToggler extends Roll20ApiScript {
             }
             const hasTorch = torchAttr.get("current");
             if (hasTorch === "1") {
-                graphic.set("light_radius", "5");
-                graphic.set("light_dimradius", "0");
-                graphic.set("light_hassight", true);
-                graphic.set("light_otherplayers", false);
+                graphic.set("emits_bright_light", false);
+                graphic.set("bright_light_distance", 0);
+                graphic.set("emits_low_light", true);
+                graphic.set("low_light_distance", 5);
                 torchAttr.set("current", "0");
             } else {
-                graphic.set("light_radius", "30");
-                graphic.set("light_dimradius", "15");
-                graphic.set("light_hassight", true);
-                graphic.set("light_otherplayers", true);
+                graphic.set("emits_bright_light", true);
+                graphic.set("bright_light_distance", 15);
+                graphic.set("emits_low_light", true);
+                graphic.set("low_light_distance", 30);
                 torchAttr.set("current", "1");
             }
         }

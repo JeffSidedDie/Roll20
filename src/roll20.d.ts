@@ -196,6 +196,15 @@ interface GraphicMutableSynchronousGetProperties {
     light_losangle: string;
     lastmove: string;
     light_multiplier: string;
+
+    //dynamic lighting
+    has_bright_light_vision: boolean;
+    has_night_vision: boolean;
+    night_vision_distance: number;
+    emits_bright_light: boolean;
+    bright_light_distance: number;
+    emits_low_light: boolean;
+    low_light_distance: number;
 }
 
 interface Graphic extends Roll20ObjectBase<GraphicImmutableSynchronousGetProperties, never, GraphicMutableSynchronousGetProperties, never> { }
@@ -458,7 +467,7 @@ declare function log(message: any): void;
 declare function on(event: "ready", callback: () => void): void;
 declare function on(event: "chat:message", callback: (msg: ChatEventData) => void): void;
 declare function on(event: "change:campaign:turnorder", callback: (obj: Campaign, prev: CampaignImmutableSynchronousGetProperties & CampaignMutableSynchronousGetProperties) => void): void;
-
+declare function on(event: "change:graphic:statusmarkers", callback: (obj: Graphic, prev: GraphicImmutableSynchronousGetProperties & GraphicMutableSynchronousGetProperties) => void): void;
 /**
  * Sends a chat message.
  * 

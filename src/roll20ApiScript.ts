@@ -47,4 +47,16 @@ export abstract class Roll20ApiScript {
     protected sendChatFromScript(message: string, callback?: (operations: ChatEventData[]) => void, options?: ChatMessageHandlingOptions) {
         sendChat(this.scriptName, message, callback, options);
     }
+
+    protected sendDescFromScript(message: string, callback?: (operations: ChatEventData[]) => void, options?: ChatMessageHandlingOptions) {
+        sendChat("", `/desc ${message}`, callback, options);
+    }
+
+    protected sendGmOnlyFromScript(message: string, callback?: (operations: ChatEventData[]) => void, options?: ChatMessageHandlingOptions) {
+        sendChat("", `/w gm ${message}`, callback, options);
+    }
+
+    protected log(message: string) {
+        log(`${new Date().toLocaleString()}: ${this.scriptName} - ${message}`);
+    }
 }
